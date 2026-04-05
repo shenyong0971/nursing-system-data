@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>護理評估及護理計劃單－排尿型態改變 v1</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:white; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1280px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:white; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select { width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
+    textarea { min-height: 88px; resize: vertical; }
+    .hint { color:#667085; font-size:13px; margin-top:6px; }
+    .table-like { width:100%; border-collapse:collapse; }
+    .table-like th, .table-like td { border:1px solid #dce5f3; padding:12px; vertical-align:top; }
+    .table-like th { background:#f6f9ff; text-align:left; color:#28426e; width:240px; }
+    .checklist { display:flex; flex-direction:column; gap:12px; }
+    .check-item { display:flex; align-items:flex-start; gap:10px; background:#fbfcfe; border:1px solid #e3ebfa; border-radius:10px; padding:10px 12px; }
+    .check-item input[type="checkbox"] { width:18px; height:18px; margin-top:2px; flex:0 0 auto; }
+    .sticky-note { position: sticky; top: 16px; margin-left: auto; width: 320px; background:#fffdf7; border:1px solid #f0d98c; border-radius:12px; padding:14px 16px; box-shadow:0 4px 12px rgba(0,0,0,.05); }
+    .sticky-note h3 { margin:0 0 10px; font-size:16px; color:#7a5b00; }
+    .summary-line { margin:6px 0; line-height:1.6; }
+    .signature-box { min-height: 72px; background:#fbfcfe; border:1px dashed #bfd0f7; border-radius:12px; }
+    .eval-table { width:100%; border-collapse:collapse; }
+    .eval-table th, .eval-table td { border:1px solid #dce5f3; padding:10px; }
+    .eval-table th { background:#f6f9ff; color:#28426e; }
+    @media (max-width: 1024px) {
+      .grid, .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .grid, .grid-2 { grid-template-columns: 1fr; }
+      .sticky-note { width:100%; position:static; margin-bottom:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>護理評估及護理計劃單－排尿型態改變 v1</h1>
+    <p>依照你提供的第三頁內容，先整理成可直接開啟測試的網頁版。</p>
+  </header>
+
+  <div class="container">
+    <div class="sticky-note">
+      <h3>這份先做的方向</h3>
+      <div class="summary-line">1. 先把紙本欄位整理成可勾選、可填寫的電子表單</div>
+      <div class="summary-line">2. 版型延續前兩頁的卡片風格</div>
+      <div class="summary-line">3. 後續可再接簽名、列印、首頁帶入</div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">基本資料</h2>
+      <div class="grid">
+        <div><label>姓名</label><input></div>
+        <div><label>病歷號</label><input></div>
+        <div><label>起始日期</label><input placeholder="年 / 月 / 日"></div>
+        <div><label>結束日期</label><input placeholder="年 / 月 / 日"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">護理評估及護理計劃單｜排尿型態改變</h2>
+
+      <table class="table-like">
+        <tr>
+          <th>成果目標</th>
+          <td>
+            <div class="checklist">
+              <label class="check-item"><input type="checkbox"> <span>照護期間減少合併症發生</span></label>
+              <label class="check-item"><input type="checkbox"> <span>能保持對排尿的控制力</span></label>
+              <label class="check-item"><input type="checkbox"> <span>能處理排尿問題的技巧</span></label>
+              <div class="check-item">
+                <input type="checkbox">
+                <div style="width:100%;">
+                  <label style="font-weight:normal; margin-bottom:6px; color:#243043;">其他</label>
+                  <input placeholder="請填寫其他成果目標">
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <th>相關因素</th>
+          <td>
+            <div class="checklist">
+              <label class="check-item"><input type="checkbox"> <span>尿路阻塞、尿滯留、溢滿性尿失禁、尿殘餘(&gt;100ml)</span></label>
+              <label class="check-item"><input type="checkbox"> <span>神經性疾病或損傷</span></label>
+              <label class="check-item"><input type="checkbox"> <span>年老婦女尿失禁</span></label>
+              <div class="check-item">
+                <input type="checkbox">
+                <div style="width:100%;">
+                  <label style="font-weight:normal; margin-bottom:6px; color:#243043;">其他</label>
+                  <input placeholder="請填寫其他相關因素">
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <th>護理計劃活動</th>
+          <td>
+            <div class="checklist">
+              <label class="check-item"><input type="checkbox"> <span>討論排尿和液體攝取的習慣型態，以作為安排活動之參考</span></label>
+              <label class="check-item"><input type="checkbox"> <span>指導增加尿液的酸度飲食，以降低細菌生長，如蔓越莓等</span></label>
+              <label class="check-item"><input type="checkbox"> <span>指導留置尿管護理及衛生清潔方法：手部衛生、以淋浴代替泡澡、會陰部清潔由前向後擦拭，以避免肛門口微生物轉移尿道口</span></label>
+              <label class="check-item"><input type="checkbox"> <span>鼓勵每天攝取飲水量 1500~2000 ml/day，限水者除外</span></label>
+              <label class="check-item"><input type="checkbox"> <span>指導留置尿管注意事項，如維持尿管不扭折、引流袋低於膀胱、尿袋出口離地面 3~5 公分及固定尿管之方法</span></label>
+              <label class="check-item"><input type="checkbox"> <span>指導膀胱造口尿管留置之照護方式並觀察造口有無感染徵象</span></label>
+              <label class="check-item"><input type="checkbox"> <span>教導觀察有無尿路感染徵象，如疼痛或發燒，並紀錄尿液顏色、量與性狀</span></label>
+              <label class="check-item"><input type="checkbox"> <span>經評估可參與膀胱訓練者，予以教導訓練方法及注意事項</span></label>
+              <div class="check-item">
+                <input type="checkbox">
+                <div style="width:100%;">
+                  <label style="font-weight:normal; margin-bottom:6px; color:#243043;">其他</label>
+                  <textarea placeholder="請填寫其他護理計劃活動"></textarea>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <th>評估人員簽章</th>
+          <td>
+            <div class="signature-box"></div>
+            <div class="hint">這一版先保留簽章區塊，之後可再改成電子簽名。</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">護理評值</h2>
+      <div class="hint" style="margin-bottom:12px;">原始表單標示「每月評估，每次評值」，這版先做成可重複填寫的表格區。</div>
+      <table class="eval-table">
+        <tr>
+          <th style="width:180px;">日期</th>
+          <th>護理評值</th>
+          <th style="width:220px;">評值人員簽章</th>
+        </tr>
+        <tr>
+          <td><input placeholder="年 / 月 / 日"></td>
+          <td><textarea placeholder="請輸入本次護理評值"></textarea></td>
+          <td><div class="signature-box"></div></td>
+        </tr>
+        <tr>
+          <td><input placeholder="年 / 月 / 日"></td>
+          <td><textarea placeholder="請輸入本次護理評值"></textarea></td>
+          <td><div class="signature-box"></div></td>
+        </tr>
+        <tr>
+          <td><input placeholder="年 / 月 / 日"></td>
+          <td><textarea placeholder="請輸入本次護理評值"></textarea></td>
+          <td><div class="signature-box"></div></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

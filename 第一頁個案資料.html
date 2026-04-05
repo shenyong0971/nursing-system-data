@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>居家照護首頁－試作版 v4</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:white; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:white; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select { width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
+    textarea { min-height: 88px; resize: vertical; }
+    .hint { color:#667085; font-size:13px; margin-top:6px; }
+    .inline-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .subcard { background:#fbfcfe; border:1px solid #e3ebfa; border-radius:12px; padding:14px; }
+    .hidden { display:none; }
+    .preview { background:#fbfcfe; border:1px dashed #bfd0f7; padding:16px; border-radius:12px; }
+    .preview ul { margin:0; padding-left:18px; line-height:1.8; }
+    .top-summary { position: sticky; top: 16px; margin-left: auto; width: 320px; background:#fffdf7; border:1px solid #f0d98c; border-radius:12px; padding:14px 16px; box-shadow:0 4px 12px rgba(0,0,0,.05); }
+    .top-summary h3 { margin:0 0 10px; font-size:16px; color:#7a5b00; }
+    .summary-line { margin:6px 0; line-height:1.6; }
+    .summary-strong { font-weight:700; color:#5b4a00; }
+    @media (max-width: 900px) { .grid, .grid-2, .inline-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .grid, .grid-2, .inline-grid { grid-template-columns: 1fr; } }
+ 
+.diagnosis-search-wrap { position: relative; }
+.diagnosis-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #cfd7e6;
+  border-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 999;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+.diagnosis-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef2f7;
+  cursor: pointer;
+}
+.diagnosis-item:hover {
+  background: #f3f6fc;
+}
+.diagnosis-code {
+  display: inline-block;
+  min-width: 90px;
+  font-weight: 700;
+  color: #2f6fed;
+}
+.diagnosis-empty {
+  padding: 10px 12px;
+  color: #667085;
+}
+.diagnosis-result {
+  background:#fbfcfe;
+  border:1px dashed #bfd0f7;
+  padding:12px;
+  border-radius:10px;
+  margin-top:10px;
+}
+.diagnosis-suggestions:empty {
+  display:none;
+}
+  
+.family-config-card { background:#fbfcfe; border:1px solid #e3ebfa; border-radius:12px; padding:14px; }
+.family-member-group { background:#fff; border:1px solid #e3ebfa; border-radius:12px; padding:14px; margin-top:12px; }
+.family-member-title { font-weight:700; color:#2f6fed; margin-bottom:12px; }
+.family-inline-note { color:#667085; font-size:13px; margin-top:6px; }
+.family-tree-box { border:1px solid #e3ebfa; padding:16px; margin-top:14px; border-radius:12px; background:#fbfcfe; overflow:auto; }
+.family-tree-box svg { display:block; margin:0 auto; }
+.family-checklist { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:10px; }
+.family-check-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid #dbe5f5; border-radius:10px; background:#fff; }
+.family-check-item input { width:auto; }
+.family-empty { color:#667085; background:#fff; border:1px dashed #dbe5f5; border-radius:10px; padding:12px; }
+.family-legend { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; color:#5c6b84; font-size:13px; }
+.family-legend span { display:inline-flex; align-items:center; gap:6px; }
+.family-legend i { display:inline-block; width:18px; height:18px; border:2px solid #243043; border-radius:4px; background:#fff; }
+.family-legend i.circle { border-radius:50%; }
+.family-legend i.highlight { border-style:dashed; background:rgba(47,111,237,.08); border-color:#2f6fed; }
+.genogram-label { font-size: 13px; fill: #243043; text-anchor: middle; dominant-baseline: central; font-weight:700; }
+.genogram-sub { font-size: 11px; fill: #667085; text-anchor: middle; }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>居家照護首頁－試作版 v4</h1>
+    <p>整合家庭圖譜進階版、居家醫療、轉介單位管理等功能。</p>
+  </header>
+
+  <div style="max-width:1200px; margin:18px auto 0; padding:0 16px;">
+    <div style="background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:14px 18px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div style="color:#28426e; font-weight:700;">v4 連動版：填完後可直接儲存回首頁</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" onclick="goBackHome()" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer;">回首頁</button>
+        <button type="button" onclick="saveCaseToHome()" style="border:none; background:#2f6fed; color:#fff; border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer;">儲存回首頁</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="top-summary">
+      <h3>快速摘要</h3>
+      <div class="summary-line"><span class="summary-strong">身分：</span><span id="summaryInsurance">健保</span></div>
+      <div class="summary-line"><span class="summary-strong">重大傷病：</span><span id="summaryMajor">無</span></div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+      <a id="linkVisitA" href="訪視紀錄A單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">訪視紀錄A單</a>
+      <a id="linkVisitB" href="訪視紀錄B單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">訪視紀錄B單</a>
+      <a id="linkNursingUrine" href="護理評估及護理計劃單_排尿型態改變_v1.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">護理評估及護理計畫單：排尿型態改變</a>
+      <a id="linkNursingWound" href="護理評估及護理計畫單_傷口.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">護理評估及護理計畫單：傷口</a>
+      <a id="linkBreathCare" href="申永居家呼吸照護所護理紀錄單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">申永居家呼吸照護所護理紀錄單</a>
+      <a id="linkMedRecord" href="藥物使用紀錄單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">藥物使用紀錄單</a>
+      <a id="linkDrugMatrix" href="藥物矩陣Code表單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">藥物矩陣Code表單</a>
+    </div>
+    <div class="card">
+      <h2 class="section-title">基本資料</h2>
+      <div class="grid">
+        <div><label>姓名</label><input id="nameInput" value="林王勸"></div>
+        <div><label>性別</label><select id="genderSelect"><option>女</option><option>男</option></select></div>
+        <div><label>家字號</label><input id="caseNoInput" value="000262"></div>
+        <div><label>身分證字號</label><input id="idNoInput" value="L201397166"></div>
+        <div>
+          <label>生日</label>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <input id="birthYear" type="text" maxlength="3" placeholder="民國年" value="36" style="width:70px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===3) document.getElementById('birthMonth').focus();">
+            <span>/</span>
+            <input id="birthMonth" type="text" maxlength="2" placeholder="月" value="07" style="width:50px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===2) document.getElementById('birthDay').focus();">
+            <span>/</span>
+            <input id="birthDay" type="text" maxlength="2" placeholder="日" value="25" style="width:50px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+          </div>
+        </div>
+        <div>
+          <label>婚姻</label>
+          <select id="marriageSelect" onchange="toggleOtherField('marriageSelect','marriageOtherWrap')">
+            <option>未婚</option>
+            <option>已婚</option>
+            <option>分居</option>
+            <option selected>喪偶</option>
+            <option>離異</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div id="marriageOtherWrap" class="hidden"><label>婚姻－其他</label><input placeholder="請填寫其他狀況"></div>
+        <div class="full"><label>住址</label><input id="addressInput" value="台中市梧棲區中央路一段9號"></div>
+        <div><label>住家電話</label><input id="homePhoneInput" value="04-26396477"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">聯絡人資料</h2>
+      <div class="grid">
+        <div><label>主要聯絡人</label><input value="林妏蔻"></div>
+        <div><label>關係</label><input value="母女"></div>
+        <div><label>電話</label><input value="04-26396477"></div>
+        <div><label>其他聯絡人</label><input></div>
+        <div><label>其他聯絡人關係</label><input></div>
+        <div><label>其他聯絡人電話</label><input></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">社會背景</h2>
+      <div class="grid-2">
+        <div>
+          <label>教育程度</label>
+          <select id="eduSelect" onchange="toggleOtherField('eduSelect','eduOtherWrap')">
+            <option selected>不識字</option>
+            <option>識字未就學</option>
+            <option>小學</option>
+            <option>國(初)中</option>
+            <option>高中(職)</option>
+            <option>大學以上</option>
+            <option>其他</option>
+          </select>
+          <div id="eduOtherWrap" class="hidden" style="margin-top:10px;"><input placeholder="教育程度－其他"></div>
+        </div>
+        <div>
+          <label>宗教信仰</label>
+          <select id="religionSelect" onchange="toggleOtherField('religionSelect','religionOtherWrap')">
+            <option selected>佛教</option>
+            <option>道教/民間</option>
+            <option>基督教</option>
+            <option>天主教</option>
+            <option>一貫道</option>
+            <option>回教</option>
+            <option>其他</option>
+          </select>
+          <div id="religionOtherWrap" class="hidden" style="margin-top:10px;"><input placeholder="宗教信仰－其他"></div>
+        </div>
+        <div>
+          <label>職業</label>
+          <select id="jobSelect" onchange="toggleOtherField('jobSelect','jobOtherWrap')">
+            <option selected>無</option>
+            <option>工商服務業</option>
+            <option>交通運輸業</option>
+            <option>漁農牧業</option>
+            <option>軍公教</option>
+            <option>家管</option>
+            <option>其他</option>
+          </select>
+          <div id="jobOtherWrap" class="hidden" style="margin-top:10px;"><input placeholder="職業－其他"></div>
+        </div>
+        <div>
+          <label>一年內重大事件發生</label>
+          <div class="inline-grid">
+            <div>
+              <select>
+                <option>無</option>
+                <option selected>有</option>
+              </select>
+            </div>
+            <div>
+              <select id="eventDetailSelect" onchange="toggleOtherField('eventDetailSelect','eventOtherWrap')">
+                <option>親友死亡</option>
+                <option selected>身體疾病</option>
+                <option>被騙錢</option>
+                <option>其他</option>
+              </select>
+            </div>
+          </div>
+          <div id="eventOtherWrap" class="hidden" style="margin-top:10px;"><input placeholder="重大事件－其他"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">健康習慣與福利</h2>
+      <div class="grid-2">
+        <div>
+          <label>吸菸狀況</label>
+          <select id="smokeSelect" onchange="toggleSmokeFields()">
+            <option selected>不吸菸</option>
+            <option>戒菸</option>
+            <option>吸菸</option>
+          </select>
+          <div id="smokeQuitWrap" class="hidden" style="margin-top:10px;">
+            <div class="inline-grid">
+              <div><label>戒菸</label><input id="smokeQuitYears" placeholder="年"> </div>
+              <div><label>之前吸菸</label><input id="smokePrevYears" placeholder="年"></div>
+            </div>
+          </div>
+          <div id="smokeActiveWrap" class="hidden" style="margin-top:10px;">
+            <div><label>吸菸</label><input id="smokeYears" placeholder="年"></div>
+          </div>
+        </div>
+        <div>
+          <label>喝酒狀況</label>
+          <select id="drinkSelect" onchange="toggleDrinkFields()">
+            <option selected>不喝酒</option>
+            <option>戒酒</option>
+            <option>喝酒</option>
+          </select>
+          <div id="drinkQuitWrap" class="hidden" style="margin-top:10px;">
+            <div class="inline-grid">
+              <div><label>戒酒</label><input id="drinkQuitYears" placeholder="年"></div>
+              <div><label>之前喝酒</label><input id="drinkPrevYears" placeholder="年"></div>
+            </div>
+          </div>
+          <div id="drinkActiveWrap" class="hidden" style="margin-top:10px;">
+            <div><label>喝酒</label><input id="drinkYears" placeholder="年"></div>
+          </div>
+        </div>
+        <div>
+          <label>檳榔狀況</label>
+          <select>
+            <option selected>不嚼檳榔</option>
+            <option>偶爾嚼檳榔</option>
+            <option>經常嚼檳榔</option>
+          </select>
+        </div>
+        <div>
+          <label>健保身分</label>
+          <select id="insuranceSelect" onchange="updateTopSummary()">
+            <option selected>健保</option>
+            <option>福保</option>
+            <option>榮保</option>
+            <option>百歲</option>
+          </select>
+        </div>
+        <div>
+          <label>福利</label>
+          <select>
+            <option value="">請選擇</option>
+            <option>中低收</option>
+            <option>低收</option>
+          </select>
+        </div>
+        <div>
+          <label>重大傷病</label>
+          <select id="majorIllnessSelect" onchange="toggleMajorIllness(); updateTopSummary();">
+            <option selected>無</option>
+            <option>有</option>
+          </select>
+        </div>
+        <div id="majorIllnessDateWrap" class="hidden">
+          <label>重大傷病到期日</label>
+          <input id="majorIllnessDate" placeholder="例如 115/12/31" oninput="updateTopSummary()">
+        </div>
+        <div class="full subcard">
+          <label>身障證明</label>
+          <div class="hint">先分成「是否持有」、「類別」與「分級」三個欄位，方便後續做查詢。</div>
+          <div class="grid" style="margin-top:12px;">
+            <div>
+              <label>是否持有</label>
+              <select id="disabilityHas" onchange="toggleDisabilityFields()">
+                <option value="no">無</option>
+                <option value="yes" selected>有</option>
+              </select>
+            </div>
+            <div id="disabilityTypeWrap">
+              <label>類別</label>
+              <select id="disabilityType">
+                <option>第一類｜神經系統構造及精神、心智功能</option>
+                <option>第二類｜眼、耳及相關構造與感官功能</option>
+                <option>第三類｜涉及聲音與言語構造及其功能</option>
+                <option>第四類｜循環、造血、免疫與呼吸系統構造及其功能</option>
+                <option>第五類｜消化、新陳代謝與內分泌系統相關構造及其功能</option>
+                <option>第六類｜泌尿與生殖系統相關構造及其功能</option>
+                <option>第七類｜神經、肌肉、骨骼之移動相關構造及其功能</option>
+                <option>第八類｜皮膚與相關構造及其功能</option>
+              </select>
+            </div>
+            <div id="disabilityLevelWrap">
+              <label>分級</label>
+              <select id="disabilityLevel">
+                <option>極重度</option>
+                <option>重度</option>
+                <option>中度</option>
+                <option>輕度</option>
+              </select>
+            </div>
+            <div id="disabilityExampleWrap" class="full">
+              <label>說明 / 舉例</label>
+              <input id="disabilityExample" value="失智症、智能障礙、精神分裂症、自閉症">
+              <div class="hint">目前先提供可手填欄位，之後可再做成依類別自動帶出範例。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">疾病診斷</h2>
+      <div id="diagnosisContainer"></div>
+      <button type="button" id="addDiagnosisBtn" onclick="addDiagnosis()" style="margin-top:12px; font-size:20px; width:40px; height:40px; border-radius:50%; border:2px solid #2f6fed; background:#e9eefc; color:#2f6fed; cursor:pointer;">+</button>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">收案資訊</h2>
+      <div class="grid">
+        <div><label>收案日</label><input id="admitDateInput" value="115/02/25"></div>
+        <div>
+          <label>主護</label>
+          <select id="mainCareSelect">
+            <option value="">請選擇主護</option>
+            <option>楊宛庭</option>
+            <option>廖容秀</option>
+            <option>沈香杏</option>
+            <option>沙珮宜</option>
+          </select>
+        </div>
+        <div>
+          <label>轉介單位 <span onclick="toggleReferralEdit()" style="color:#2f6fed; font-size:14px; cursor:pointer; margin-left:8px;">修改</span></label>
+          <select id="referralUnit">
+            <option value="">請選擇轉介單位</option>
+          </select>
+          <div id="referralEditPanel" class="hidden" style="margin-top:10px; background:#fbfcfe; border:1px solid #e3ebfa; border-radius:10px; padding:14px;">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input id="referralNewUnit" type="text" placeholder="輸入新單位名稱" style="flex:1;" />
+              <button type="button" onclick="addReferralUnit()" style="padding:8px 14px; border:none; background:#2f6fed; color:white; border-radius:8px; cursor:pointer;">新增</button>
+            </div>
+            <div id="referralUnitList"></div>
+          </div>
+        </div>
+        <div>
+          <label>有無傳染性疾病</label>
+          <select id="infectHasSelect" onchange="toggleInfectFields()">
+            <option>無</option>
+            <option selected>有</option>
+          </select>
+        </div>
+        <div id="infectTypeWrap">
+          <label>傳染性疾病類型</label>
+          <select id="infectTypeSelect" onchange="toggleOtherField('infectTypeSelect','infectOtherWrap')">
+            <option>肺結核</option>
+            <option>疥瘡</option>
+            <option>多重抗藥性細菌</option>
+            <option>HIV</option>
+            <option selected>HVB</option>
+            <option>HVC</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div id="infectOtherWrap" class="hidden"><label>傳染性疾病－其他</label><input placeholder="請填寫其他疾病"></div>
+        <div class="full">
+          <label>收案原因</label>
+          <select id="caseReasonSelect" onchange="toggleCaseReasonFields()">
+            <option selected>鼻胃管</option>
+            <option>留置導尿管</option>
+            <option>氣切管</option>
+            <option>瘻口</option>
+            <option>傷口</option>
+            <option>呼吸器</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div id="fistulaTypeWrap" class="hidden">
+          <label>瘻口類型</label>
+          <select id="fistulaTypeSelect">
+            <option selected>胃造廔</option>
+            <option>空腸造廔</option>
+            <option>膀胱造廔</option>
+            <option>腸造廔口</option>
+          </select>
+        </div>
+        <div id="caseReasonOtherWrap" class="hidden"><label>收案原因－其他</label><input placeholder="請填寫其他收案原因"></div>
+        <div><label>收案時柯氏評估</label><select id="karnofskySelect"></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">家庭圖譜</h2>
+      <div class="family-config-card">
+        <div class="grid">
+          <div>
+            <label>主要個案</label>
+            <input type="text" id="familyMainName" readonly style="background:#f3f6fc; color:#2f6fed; font-weight:700;">
+          </div>
+          <div>
+            <label>個案父親</label>
+            <select id="familyFatherStatus">
+              <option value="alive">存</option>
+              <option value="dead">歿</option>
+            </select>
+          </div>
+          <div>
+            <label>個案母親</label>
+            <select id="familyMotherStatus">
+              <option value="alive">存</option>
+              <option value="dead">歿</option>
+            </select>
+          </div>
+          <div id="spouseParentWrap">
+            <label>配偶父母</label>
+            <div class="inline-grid">
+              <select id="familySpouseFatherStatus">
+                <option value="alive">配父：存</option>
+                <option value="dead">配父：歿</option>
+              </select>
+              <select id="familySpouseMotherStatus">
+                <option value="alive">配母：存</option>
+                <option value="dead">配母：歿</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label>外傭 / 看護</label>
+            <select id="caregiverHasSelect">
+              <option value="no">無</option>
+              <option value="yes">有</option>
+            </select>
+          </div>
+          <div id="caregiverGenderWrap" class="hidden">
+            <label>外傭 / 看護性別</label>
+            <select id="caregiverGenderSelect">
+              <option value="女">女</option>
+              <option value="男">男</option>
+            </select>
+          </div>
+          <div>
+            <label>子女人數</label>
+            <input type="number" id="familyChildTotal" min="0" max="10" value="0">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button type="button" id="renderFamilyTreeBtn" style="padding:10px 20px; border:2px solid #2f6fed; background:#e9eefc; color:#2f6fed; border-radius:10px; font-size:14px; cursor:pointer; font-weight:700; width:100%;">產生家庭圖譜</button>
+          </div>
+          <div class="full">
+            <div class="family-inline-note">子女依長幼順序由左到右繪製；只有勾選同住的人員會被同住框標示，且僅為同住的子女顯示下一代。</div>
+          </div>
+        </div>
+
+        <div id="familyChildrenContainer" class="full"></div>
+
+        <div class="full" style="margin-top:16px;">
+          <label>同住對象</label>
+          <div id="coResidentChecklist" class="family-checklist"></div>
+        </div>
+
+        <div class="family-legend">
+          <span><i></i> 男</span>
+          <span><i class="circle"></i> 女</span>
+          <span><i class="highlight"></i> 同住對象範圍</span>
+        </div>
+      </div>
+      <div id="familyTreeBox" class="family-tree-box" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">居家醫療</h2>
+      <div class="inline-grid">
+        <div>
+          <label>醫院名稱 <span onclick="toggleClinicEdit()" style="color:#2f6fed; font-size:14px; cursor:pointer; margin-left:8px;">修改</span></label>
+          <select id="clinicSelect" onchange="onClinicChange()">
+            <option value="">請選擇醫院</option>
+          </select>
+          <div id="clinicEditPanel" class="hidden" style="margin-top:10px; background:#fbfcfe; border:1px solid #e3ebfa; border-radius:10px; padding:14px;">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input id="clinicNewName" type="text" placeholder="輸入新醫院名稱" style="flex:1;" />
+              <button type="button" onclick="addClinic()" style="padding:8px 14px; border:none; background:#2f6fed; color:white; border-radius:8px; cursor:pointer;">新增</button>
+            </div>
+            <div id="clinicList"></div>
+          </div>
+        </div>
+        <div>
+          <label>醫師名稱 <span onclick="toggleDoctorEdit()" style="color:#2f6fed; font-size:14px; cursor:pointer; margin-left:8px;">修改</span></label>
+          <select id="doctorSelect">
+            <option value="">請先選擇醫院</option>
+          </select>
+          <div id="doctorEditPanel" class="hidden" style="margin-top:10px; background:#fbfcfe; border:1px solid #e3ebfa; border-radius:10px; padding:14px;">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input id="doctorNewName" type="text" placeholder="輸入新醫師名稱" style="flex:1;" />
+              <button type="button" onclick="addDoctor()" style="padding:8px 14px; border:none; background:#2f6fed; color:white; border-radius:8px; cursor:pointer;">新增</button>
+            </div>
+            <div id="doctorList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">社會資源應用</h2>
+      <div class="grid">
+        <div>
+          <label>資源類型</label>
+          <select id="serviceSelect" onchange="toggleOtherField('serviceSelect','serviceOtherWrap')">
+            <option>居家服務</option>
+            <option>居家復健</option>
+            <option>其他</option>
+          </select>
+          <div id="serviceOtherWrap" class="hidden" style="margin-top:10px;"><input placeholder="社會資源應用－其他"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">特殊醫療照會</h2>
+      <div style="display:flex; flex-direction:column; gap:20px; padding:12px 24px;">
+        <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+          <input type="checkbox" id="consultDisability" value="身障鑑定" style="margin:0; width:18px; height:18px;"> 身障鑑定
+        </label>
+        <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+          <input type="checkbox" id="consultBarthel" value="巴氏量表鑑定" style="margin:0; width:18px; height:18px;"> 巴氏量表鑑定
+        </label>
+        <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+          <input type="checkbox" id="consultMajorIllness" value="重大傷病鑑定" style="margin:0; width:18px; height:18px;"> 重大傷病鑑定
+        </label>
+        <div style="display:inline-flex; align-items:center; gap:14px;">
+          <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+            <input type="checkbox" id="consultOther" value="其他" style="margin:0; width:18px; height:18px;" onchange="document.getElementById('consultOtherInput').style.display=this.checked?'inline-block':'none';"> 其他
+          </label>
+          <input type="text" id="consultOtherInput" placeholder="請填寫" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:14px; width:200px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">結案</h2>
+      <div class="grid">
+        <div>
+          <label>結案日</label>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <input id="closeDateYear" type="text" maxlength="3" placeholder="民國年" style="width:70px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===3) document.getElementById('closeDateMonth').focus();">
+            <span>/</span>
+            <input id="closeDateMonth" type="text" maxlength="2" placeholder="月" style="width:50px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===2) document.getElementById('closeDateDay').focus();">
+            <span>/</span>
+            <input id="closeDateDay" type="text" maxlength="2" placeholder="日" style="width:50px; text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+          </div>
+        </div>
+        <div><label>後續轉介機構</label><input></div>
+        <div class="full">
+          <label>結案原因</label>
+          <div style="display:flex; flex-direction:column; gap:20px; padding:12px 24px;">
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="病情改善" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 病情改善
+            </label>
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="死亡" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 死亡
+            </label>
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="遷出照護區域" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 遷出照護區域
+            </label>
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="他院收案" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 他院收案
+            </label>
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="未完成用藥整合" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 未完成用藥整合
+            </label>
+            <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+              <input type="radio" name="closeReason" value="住院" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 住院
+            </label>
+            <div style="display:inline-flex; align-items:center; gap:14px;">
+              <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+                <input type="radio" name="closeReason" value="住長照機構" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 住長照機構
+              </label>
+              <input type="text" id="closeReasonLtcInput" placeholder="機構名稱" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:14px; width:200px;">
+            </div>
+            <div style="display:inline-flex; align-items:center; gap:14px;">
+              <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+                <input type="radio" name="closeReason" value="拒訪" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 拒訪
+              </label>
+              <input type="text" id="closeReasonRefuseInput" placeholder="原因" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:14px; width:200px;">
+            </div>
+            <div style="display:inline-flex; align-items:center; gap:14px;">
+              <label style="font-weight:normal; display:inline-flex; align-items:center; gap:14px; cursor:pointer; font-size:15px;">
+                <input type="radio" name="closeReason" value="其他" style="margin:0; width:18px; height:18px;" onchange="handleCloseReasonChange()"> 其他
+              </label>
+              <input type="text" id="closeReasonOtherInput" placeholder="原因" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:14px; width:200px;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toggleOtherField(selectId, wrapId) {
+      const select = document.getElementById(selectId);
+      const wrap = document.getElementById(wrapId);
+      if (!select || !wrap) return;
+      wrap.classList.toggle('hidden', select.value !== '其他');
+    }
+
+    function handleCloseReasonChange() {
+      var selected = document.querySelector('input[name="closeReason"]:checked');
+      var val = selected ? selected.value : '';
+      document.getElementById('closeReasonLtcInput').style.display = (val === '住長照機構') ? 'inline-block' : 'none';
+      document.getElementById('closeReasonRefuseInput').style.display = (val === '拒訪') ? 'inline-block' : 'none';
+      document.getElementById('closeReasonOtherInput').style.display = (val === '其他') ? 'inline-block' : 'none';
+    }
+
+    function toggleCaseReasonFields() {
+      var val = document.getElementById('caseReasonSelect').value;
+      document.getElementById('fistulaTypeWrap').classList.toggle('hidden', val !== '瘻口');
+      document.getElementById('caseReasonOtherWrap').classList.toggle('hidden', val !== '其他');
+    }
+
+    function toggleSmokeFields() {
+      const val = document.getElementById('smokeSelect').value;
+      document.getElementById('smokeQuitWrap').classList.toggle('hidden', val !== '戒菸');
+      document.getElementById('smokeActiveWrap').classList.toggle('hidden', val !== '吸菸');
+    }
+
+    function toggleDrinkFields() {
+      const val = document.getElementById('drinkSelect').value;
+      document.getElementById('drinkQuitWrap').classList.toggle('hidden', val !== '戒酒');
+      document.getElementById('drinkActiveWrap').classList.toggle('hidden', val !== '喝酒');
+    }
+
+    function toggleDisabilityFields() {
+      const has = document.getElementById('disabilityHas').value;
+      const hidden = has !== 'yes';
+      document.getElementById('disabilityTypeWrap').classList.toggle('hidden', hidden);
+      document.getElementById('disabilityLevelWrap').classList.toggle('hidden', hidden);
+      document.getElementById('disabilityExampleWrap').classList.toggle('hidden', hidden);
+    }
+
+    function toggleMajorIllness() {
+      const hasMajor = document.getElementById('majorIllnessSelect').value === '有';
+      document.getElementById('majorIllnessDateWrap').classList.toggle('hidden', !hasMajor);
+      if (!hasMajor) {
+        document.getElementById('majorIllnessDate').value = '';
+      }
+    }
+
+    function updateTopSummary() {
+      const insurance = document.getElementById('insuranceSelect').value;
+      const hasMajor = document.getElementById('majorIllnessSelect').value === '有';
+      const majorDate = document.getElementById('majorIllnessDate').value;
+
+      document.getElementById('summaryInsurance').textContent = insurance;
+
+      if (hasMajor) {
+        document.getElementById('summaryMajor').textContent = '有 ' + (majorDate || '（尚未填寫）');
+      } else {
+        document.getElementById('summaryMajor').textContent = '無';
+      }
+    }
+
+    function toggleInfectFields() {
+      var val = document.getElementById('infectHasSelect').value;
+      document.getElementById('infectTypeWrap').classList.toggle('hidden', val === '無');
+      document.getElementById('infectOtherWrap').classList.toggle('hidden', true);
+    }
+
+    toggleDisabilityFields();
+    toggleMajorIllness();
+    toggleInfectFields();
+    updateTopSummary();
+  </script>
+  <script>
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, function(ch) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+      });
+    }
+
+    function syncFamilyMainName() {
+      var nameInput = document.getElementById('nameInput');
+      var familyMain = document.getElementById('familyMainName');
+      if (nameInput && familyMain) familyMain.value = nameInput.value.trim() || '個案';
+    }
+
+    function familyHasSpouse() {
+      var marriage = document.getElementById('marriageSelect').value;
+      return marriage === '已婚' || marriage === '分居' || marriage === '喪偶';
+    }
+
+    function toggleFamilyParentFields() {
+      var show = familyHasSpouse();
+      var wrap = document.getElementById('spouseParentWrap');
+      if (wrap) wrap.classList.toggle('hidden', !show);
+    }
+
+    function toggleCaregiverFields() {
+      var has = document.getElementById('caregiverHasSelect').value === 'yes';
+      document.getElementById('caregiverGenderWrap').classList.toggle('hidden', !has);
+      refreshCoResidentChecklist();
+    }
+
+    function renderChildForms() {
+      var total = parseInt(document.getElementById('familyChildTotal').value, 10) || 0;
+      total = Math.max(0, Math.min(10, total));
+      document.getElementById('familyChildTotal').value = total;
+      var container = document.getElementById('familyChildrenContainer');
+      var html = '';
+      for (var i = 1; i <= total; i++) {
+        html += '<div class="family-member-group">';
+        html += '<div class="family-member-title">子女' + i + '（依長幼順序）</div>';
+        html += '<div class="grid">';
+        html += '<div><label>子女' + i + ' 性別</label><select id="child' + i + '_gender"><option value="男">男</option><option value="女">女</option></select></div>';
+        html += '<div><label>子女' + i + ' 狀態</label><select id="child' + i + '_status"><option value="alive">存</option><option value="dead">歿</option></select></div>';
+        html += '<div><label>子女' + i + ' 婚姻</label><select id="child' + i + '_marriage"><option value="未婚">未婚</option><option value="已婚">已婚</option></select></div>';
+        html += '<div><label>子女' + i + ' 下一代人數</label><input type="number" id="child' + i + '_nextGenCount" min="0" max="10" value="0"></div>';
+        html += '</div>';
+        html += '<div id="child' + i + '_spouseWrap" class="grid" style="margin-top:12px;">';
+        html += '<div><label>子女配偶' + i + ' 性別</label><select id="child' + i + '_spouseGender"><option value="男">男</option><option value="女">女</option></select></div>';
+        html += '<div><label>子女配偶' + i + ' 狀態</label><select id="child' + i + '_spouseStatus"><option value="alive">存</option><option value="dead">歿</option></select></div>';
+        html += '</div>';
+        html += '<div id="child' + i + '_nextGenWrap" class="full hidden" style="margin-top:12px;"></div>';
+        html += '</div>';
+      }
+      container.innerHTML = html;
+
+      for (var j = 1; j <= total; j++) {
+        (function(idx) {
+          var marriageSel = document.getElementById('child' + idx + '_marriage');
+          var nextGenCountInput = document.getElementById('child' + idx + '_nextGenCount');
+          var statusSel = document.getElementById('child' + idx + '_status');
+          function applyVisibility() {
+            var alive = statusSel.value === 'alive';
+            document.getElementById('child' + idx + '_spouseWrap').classList.toggle('hidden', !alive || marriageSel.value !== '已婚');
+            if (!alive) { marriageSel.value = '未婚'; nextGenCountInput.value = 0; }
+            renderNextGenForms(idx);
+            refreshCoResidentChecklist();
+          }
+          marriageSel.addEventListener('change', applyVisibility);
+          nextGenCountInput.addEventListener('change', function() { renderNextGenForms(idx); refreshCoResidentChecklist(); });
+          statusSel.addEventListener('change', applyVisibility);
+          document.getElementById('child' + idx + '_spouseGender').addEventListener('change', refreshCoResidentChecklist);
+          document.getElementById('child' + idx + '_spouseStatus').addEventListener('change', refreshCoResidentChecklist);
+          applyVisibility();
+        })(j);
+      }
+      refreshCoResidentChecklist();
+    }
+
+    function renderNextGenForms(childIdx) {
+      var count = parseInt(document.getElementById('child' + childIdx + '_nextGenCount').value, 10) || 0;
+      count = Math.max(0, Math.min(10, count));
+      document.getElementById('child' + childIdx + '_nextGenCount').value = count;
+      var wrap = document.getElementById('child' + childIdx + '_nextGenWrap');
+      if (count === 0) {
+        wrap.innerHTML = '';
+        wrap.classList.add('hidden');
+        return;
+      }
+      wrap.classList.remove('hidden');
+      var html = '';
+      for (var ng = 1; ng <= count; ng++) {
+        html += '<div class="grid" style="margin-top:' + (ng > 1 ? '8' : '0') + 'px;">';
+        html += '<div><label>子孫' + ng + ' 性別</label><select id="child' + childIdx + '_nextGen' + ng + '_gender"><option value="男">男</option><option value="女">女</option></select></div>';
+        html += '<div><label>子孫' + ng + ' 狀態</label><select id="child' + childIdx + '_nextGen' + ng + '_status"><option value="alive">存</option><option value="dead">歿</option></select></div>';
+        html += '</div>';
+      }
+      wrap.innerHTML = html;
+      for (var ng = 1; ng <= count; ng++) {
+        document.getElementById('child' + childIdx + '_nextGen' + ng + '_gender').addEventListener('change', refreshCoResidentChecklist);
+        document.getElementById('child' + childIdx + '_nextGen' + ng + '_status').addEventListener('change', refreshCoResidentChecklist);
+      }
+    }
+
+    function getFamilyPeople() {
+      var people = [];
+      var gender = document.getElementById('genderSelect').value;
+      var marriage = document.getElementById('marriageSelect').value;
+      var spouseVisible = familyHasSpouse();
+      var spouseDead = marriage === '喪偶';
+      var mainName = document.getElementById('familyMainName').value.trim() || '個案';
+
+      people.push({ key:'case', label:mainName, gender:gender, status:'alive', type:'case' });
+      people.push({ key:'father', label:'父', gender:'男', status:document.getElementById('familyFatherStatus').value, type:'parent' });
+      people.push({ key:'mother', label:'母', gender:'女', status:document.getElementById('familyMotherStatus').value, type:'parent' });
+
+      if (spouseVisible) {
+        people.push({ key:'spouse', label:'配偶', gender:gender === '男' ? '女' : '男', status:spouseDead ? 'dead' : 'alive', type:'spouse' });
+        people.push({ key:'spouseFather', label:'配父', gender:'男', status:document.getElementById('familySpouseFatherStatus').value, type:'parent' });
+        people.push({ key:'spouseMother', label:'配母', gender:'女', status:document.getElementById('familySpouseMotherStatus').value, type:'parent' });
+      }
+
+      if (document.getElementById('caregiverHasSelect').value === 'yes') {
+        people.push({ key:'caregiver', label:'外傭/看護', gender:document.getElementById('caregiverGenderSelect').value, status:'alive', type:'caregiver' });
+      }
+
+      var total = parseInt(document.getElementById('familyChildTotal').value, 10) || 0;
+      for (var i = 1; i <= total; i++) {
+        var childStatus = document.getElementById('child' + i + '_status').value;
+        var childMarriage = document.getElementById('child' + i + '_marriage').value;
+        people.push({ key:'child' + i, label:'子女' + i, gender:document.getElementById('child' + i + '_gender').value, status:childStatus, type:'child', index:i, marriage:childMarriage });
+        if (childStatus === 'alive' && childMarriage === '已婚') {
+          people.push({ key:'child' + i + '_spouse', label:'子女配偶' + i, gender:document.getElementById('child' + i + '_spouseGender').value, status:document.getElementById('child' + i + '_spouseStatus').value, type:'childSpouse', index:i });
+        }
+        var nextGenCount = parseInt(document.getElementById('child' + i + '_nextGenCount').value, 10) || 0;
+        for (var ng = 1; ng <= nextGenCount; ng++) {
+          var ngGenderEl = document.getElementById('child' + i + '_nextGen' + ng + '_gender');
+          var ngStatusEl = document.getElementById('child' + i + '_nextGen' + ng + '_status');
+          if (ngGenderEl && ngStatusEl) {
+            people.push({ key:'child' + i + '_nextGen' + ng, label:'子孫' + ng, gender:ngGenderEl.value, status:ngStatusEl.value, type:'nextGen', index:i, ngIndex:ng });
+          }
+        }
+      }
+      return people;
+    }
+
+    function refreshCoResidentChecklist() {
+      var wrap = document.getElementById('coResidentChecklist');
+      if (!wrap) return;
+      var checked = Array.prototype.slice.call(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(function(el) { return el.value; });
+      if (checked.indexOf('case') === -1) checked.push('case');
+      var alivePeople = getFamilyPeople().filter(function(p) { return p.status === 'alive'; });
+      if (!alivePeople.length) {
+        wrap.innerHTML = '<div class="family-empty">目前沒有可選擇的同住對象。</div>';
+        return;
+      }
+      wrap.innerHTML = alivePeople.map(function(p) {
+        var disabled = p.key === 'case' ? ' disabled' : '';
+        var isChecked = checked.indexOf(p.key) !== -1 || p.key === 'case';
+        return '<label class="family-check-item"><input type="checkbox" value="' + escapeHtml(p.key) + '"' + (isChecked ? ' checked' : '') + disabled + '><span>' + escapeHtml(p.label) + '</span></label>';
+      }).join('');
+    }
+
+    function getSelectedCoResidents() {
+      return Array.prototype.slice.call(document.querySelectorAll('#coResidentChecklist input[type="checkbox"]:checked')).map(function(el) { return el.value; });
+    }
+
+    function renderFamilyTree() {
+      syncFamilyMainName();
+      toggleFamilyParentFields();
+      var box = document.getElementById('familyTreeBox');
+      box.style.display = 'block';
+
+      var people = getFamilyPeople();
+      var selectedCoResidents = getSelectedCoResidents();
+      if (selectedCoResidents.indexOf('case') === -1) selectedCoResidents.push('case');
+      var byKey = {};
+      people.forEach(function(p) { byKey[p.key] = p; });
+
+      var hasSpouse = !!byKey.spouse;
+      var main = byKey.case;
+      var spouse = byKey.spouse;
+      var mainIsMale = main.gender === '男';
+      var baseChildren = people.filter(function(p) { return p.type === 'child'; }).sort(function(a,b){ return a.index - b.index; });
+      var size = 28;
+      var coupleGap = 150;
+      var childGap = 250;
+      var childClusterWidth = 240;
+      var totalChildWidth = Math.max(0, (baseChildren.length - 1) * childGap);
+      var svgWidth = Math.max(980, 320 + totalChildWidth + childClusterWidth + (hasSpouse ? 260 : 120));
+      var svgHeight = 640;
+      var centerX = svgWidth / 2;
+      var parentY = 72;
+      var mainY = 220;
+      var childY = 400;
+      var grandY = 545;
+      var nodes = {};
+      var lines = [];
+      var nodeLayer = [];
+      var highlightTargets = [];
+
+      var mainX = hasSpouse ? centerX + (mainIsMale ? -coupleGap / 2 : coupleGap / 2) : centerX;
+      var spouseX = hasSpouse ? centerX + (mainIsMale ? coupleGap / 2 : -coupleGap / 2) : null;
+
+      function addLine(x1, y1, x2, y2, cls) { lines.push({x1:x1,y1:y1,x2:x2,y2:y2,cls:cls||'normal'}); }
+      function personBox(x, y) { return { x:x-size-8, y:y-size-8, w:(size*2)+16, h:(size*2)+16, cx:x, cy:y }; }
+      function rectUnionMid(a, b) {
+        return {
+          x1: a.cx,
+          y1: a.cy,
+          x2: b.cx,
+          y2: b.cy
+        };
+      }
+
+      function drawDeadCrossSquare(cx, cy) {
+        return '<line x1="' + (cx-size+5) + '" y1="' + (cy-size+5) + '" x2="' + (cx+size-5) + '" y2="' + (cy+size-5) + '" stroke="#c53030" stroke-width="2.5" />' +
+               '<line x1="' + (cx+size-5) + '" y1="' + (cy-size+5) + '" x2="' + (cx-size+5) + '" y2="' + (cy+size-5) + '" stroke="#c53030" stroke-width="2.5" />';
+      }
+      function drawDeadCrossCircle(cx, cy) {
+        var d = Math.round(size * 0.62);
+        return '<line x1="' + (cx-d) + '" y1="' + (cy-d) + '" x2="' + (cx+d) + '" y2="' + (cy+d) + '" stroke="#c53030" stroke-width="2.5" />' +
+               '<line x1="' + (cx+d) + '" y1="' + (cy-d) + '" x2="' + (cx-d) + '" y2="' + (cy+d) + '" stroke="#c53030" stroke-width="2.5" />';
+      }
+      function drawNode(person, cx, cy, options) {
+        options = options || {};
+        var fill = options.fill || '#fff';
+        var label = options.label || person.label;
+        var isMale = person.gender === '男';
+        var body = '';
+        if (fill === 'pattern') {
+          if (isMale) {
+            body += '<rect x="' + (cx-size) + '" y="' + (cy-size) + '" width="' + (size*2) + '" height="' + (size*2) + '" fill="url(#caseHatch)" stroke="#243043" stroke-width="2.2" rx="4" />';
+          } else {
+            body += '<circle cx="' + cx + '" cy="' + cy + '" r="' + size + '" fill="url(#caseHatch)" stroke="#243043" stroke-width="2.2" />';
+          }
+        } else if (isMale) {
+          body += '<rect x="' + (cx-size) + '" y="' + (cy-size) + '" width="' + (size*2) + '" height="' + (size*2) + '" fill="' + fill + '" stroke="#243043" stroke-width="2" rx="4" />';
+        } else {
+          body += '<circle cx="' + cx + '" cy="' + cy + '" r="' + size + '" fill="' + fill + '" stroke="#243043" stroke-width="2" />';
+        }
+        if (person.status === 'dead') body += isMale ? drawDeadCrossSquare(cx, cy) : drawDeadCrossCircle(cx, cy);
+        body += '<text x="' + cx + '" y="' + (cy + size + 20) + '" class="genogram-label">' + escapeHtml(label) + '</text>';
+        nodeLayer.push(body);
+        var b = personBox(cx, cy);
+        nodes[person.key] = { x:cx, y:cy, person:person, box:b };
+        if (selectedCoResidents.indexOf(person.key) !== -1 && person.status === 'alive') highlightTargets.push(b);
+      }
+
+      var svg = '';
+      svg += '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgWidth + '" height="' + svgHeight + '" viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '">';
+      svg += '<defs><pattern id="caseHatch" patternUnits="userSpaceOnUse" width="8" height="8"><path d="M0,8 L8,0" stroke="#2f6fed" stroke-width="1.4" /></pattern></defs>';
+
+      // parent nodes: split into two clear groups to avoid overlap
+      var parentGroupGap = 170;
+      if (hasSpouse) {
+        var leftCenter = centerX - parentGroupGap;
+        var rightCenter = centerX + parentGroupGap;
+        var spFatherX = leftCenter - 70;
+        var spMotherX = leftCenter + 70;
+        var fatherX = rightCenter - 70;
+        var motherX = rightCenter + 70;
+
+        drawNode(byKey.spouseFather, spFatherX, parentY, { label:'配父' });
+        drawNode(byKey.spouseMother, spMotherX, parentY, { label:'配母' });
+        addLine(spFatherX + size, parentY, spMotherX - size, parentY);
+        var spMid = (spFatherX + spMotherX) / 2;
+        var spouseTrunkY = mainY - size - 28;
+        addLine(spMid, parentY + size, spMid, spouseTrunkY);
+        addLine(spMid, spouseTrunkY, spouseX, spouseTrunkY);
+        addLine(spouseX, spouseTrunkY, spouseX, mainY - size);
+
+        drawNode(byKey.father, fatherX, parentY, { label:'父' });
+        drawNode(byKey.mother, motherX, parentY, { label:'母' });
+        addLine(fatherX + size, parentY, motherX - size, parentY);
+        var mainMid = (fatherX + motherX) / 2;
+        var mainTrunkY = mainY - size - 28;
+        addLine(mainMid, parentY + size, mainMid, mainTrunkY);
+        addLine(mainMid, mainTrunkY, mainX, mainTrunkY);
+        addLine(mainX, mainTrunkY, mainX, mainY - size);
+      } else {
+        var fatherXOnly = centerX - 70;
+        var motherXOnly = centerX + 70;
+        drawNode(byKey.father, fatherXOnly, parentY, { label:'父' });
+        drawNode(byKey.mother, motherXOnly, parentY, { label:'母' });
+        addLine(fatherXOnly + size, parentY, motherXOnly - size, parentY);
+        var onlyMid = (fatherXOnly + motherXOnly) / 2;
+        var onlyTrunkY = mainY - size - 28;
+        addLine(onlyMid, parentY + size, onlyMid, onlyTrunkY);
+        addLine(onlyMid, onlyTrunkY, mainX, onlyTrunkY);
+        addLine(mainX, onlyTrunkY, mainX, mainY - size);
+      }
+
+      // main + spouse
+      drawNode(main, mainX, mainY, { label:main.label, fill:'pattern' });
+      if (hasSpouse) {
+        drawNode(spouse, spouseX, mainY, { label:'配偶' });
+        addLine(Math.min(mainX, spouseX) + size, mainY, Math.max(mainX, spouseX) - size, mainY, spouse.status === 'dead' ? 'widow' : 'normal');
+      }
+
+      // caregiver
+      if (byKey.caregiver) {
+        var caregiverX = hasSpouse ? Math.max(mainX, spouseX) + 175 : mainX + 175;
+        drawNode(byKey.caregiver, caregiverX, mainY, { label:'外傭/看護' });
+      }
+
+      // children row with wider clusters to avoid overlap
+      if (baseChildren.length) {
+        var startX = centerX - totalChildWidth / 2;
+        var coupleMidX = hasSpouse ? (mainX + spouseX) / 2 : mainX;
+        var branchY = childY - 78;
+        addLine(coupleMidX, mainY + size, coupleMidX, branchY);
+        if (baseChildren.length > 1) addLine(startX, branchY, startX + totalChildWidth, branchY);
+
+        baseChildren.forEach(function(child, idx) {
+          var childX = startX + idx * childGap;
+          addLine(childX, branchY, childX, childY - size);
+          drawNode(child, childX, childY, { label:'子女' + child.index });
+
+          var marriedAlive = child.status === 'alive' && child.marriage === '已婚' && byKey['child' + child.index + '_spouse'];
+          if (marriedAlive) {
+            var spouseNode = byKey['child' + child.index + '_spouse'];
+            var spouseOffset = 105;
+            var childSpouseX = child.gender === '男' ? childX + spouseOffset : childX - spouseOffset;
+            drawNode(spouseNode, childSpouseX, childY, { label:'子女配偶' + child.index });
+            addLine(Math.min(childX, childSpouseX) + size, childY, Math.max(childX, childSpouseX) - size, childY);
+          }
+
+          // draw multiple grandchildren below this child
+          var childNextGens = people.filter(function(p) { return p.type === 'nextGen' && p.index === child.index; });
+          if (childNextGens.length > 0 && selectedCoResidents.indexOf(child.key) !== -1) {
+            var ngGap = 70;
+            var ngTotalW = Math.max(0, (childNextGens.length - 1) * ngGap);
+            var ngStartX = childX - ngTotalW / 2;
+            var ngBranchY = grandY - 40;
+            addLine(childX, childY + size, childX, ngBranchY);
+            if (childNextGens.length > 1) {
+              addLine(ngStartX, ngBranchY, ngStartX + ngTotalW, ngBranchY);
+            }
+            childNextGens.forEach(function(ng, ngIdx) {
+              var ngX = ngStartX + ngIdx * ngGap;
+              addLine(ngX, ngBranchY, ngX, grandY - size);
+              drawNode(ng, ngX, grandY, { label: '子孫' + ng.ngIndex });
+            });
+          }
+        });
+      }
+
+      // co-resident highlight: single continuous enclosing shape
+      if (highlightTargets.length) {
+        var pad = 18;
+        var hlFill = 'rgba(47,111,237,0.08)';
+        var hlStroke = '#2f6fed';
+        var highlight = [];
+
+        // group highlight targets by row (cy within 40px = same row)
+        var hlRows = [];
+        highlightTargets.forEach(function(t) {
+          var found = false;
+          for (var r = 0; r < hlRows.length; r++) {
+            if (Math.abs(hlRows[r][0].cy - t.cy) < 40) {
+              hlRows[r].push(t);
+              found = true;
+              break;
+            }
+          }
+          if (!found) hlRows.push([t]);
+        });
+        hlRows.sort(function(a, b) { return a[0].cy - b[0].cy; });
+
+        // compute per-row bounding rect
+        var rowBounds = hlRows.map(function(row) {
+          var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+          row.forEach(function(b) {
+            minX = Math.min(minX, b.x - pad);
+            maxX = Math.max(maxX, b.x + b.w + pad);
+            minY = Math.min(minY, b.y - pad);
+            maxY = Math.max(maxY, b.y + b.h + pad);
+          });
+          return { left: minX, right: maxX, top: minY, bottom: maxY };
+        });
+
+        // build stacked bands: row bounds + connector bands between rows
+        var bands = [];
+        for (var ri = 0; ri < rowBounds.length; ri++) {
+          bands.push(rowBounds[ri]);
+          if (ri < rowBounds.length - 1) {
+            var cur = rowBounds[ri], nxt = rowBounds[ri + 1];
+            var cL = Math.max(cur.left, nxt.left);
+            var cR = Math.min(cur.right, nxt.right);
+            if (cL >= cR) {
+              var mx = (cur.left + cur.right + nxt.left + nxt.right) / 4;
+              cL = mx - 50; cR = mx + 50;
+            }
+            bands.push({ left: cL, right: cR, top: cur.bottom, bottom: nxt.top });
+          }
+        }
+
+        // trace outline: right edge going down, then left edge going up
+        var pts = [];
+        for (var bi = 0; bi < bands.length; bi++) {
+          pts.push({ x: bands[bi].right, y: bands[bi].top });
+          pts.push({ x: bands[bi].right, y: bands[bi].bottom });
+        }
+        for (var bi = bands.length - 1; bi >= 0; bi--) {
+          pts.push({ x: bands[bi].left, y: bands[bi].bottom });
+          pts.push({ x: bands[bi].left, y: bands[bi].top });
+        }
+
+        // remove consecutive duplicates
+        var clean = [pts[0]];
+        for (var pi = 1; pi < pts.length; pi++) {
+          if (pts[pi].x !== clean[clean.length - 1].x || pts[pi].y !== clean[clean.length - 1].y) {
+            clean.push(pts[pi]);
+          }
+        }
+        // remove collinear points (same x or same y as neighbors)
+        var final = [clean[0]];
+        for (var pi = 1; pi < clean.length - 1; pi++) {
+          var pv = clean[pi - 1], pc = clean[pi], pn = clean[pi + 1];
+          if ((pv.x === pc.x && pc.x === pn.x) || (pv.y === pc.y && pc.y === pn.y)) continue;
+          final.push(pc);
+        }
+        final.push(clean[clean.length - 1]);
+
+        // build SVG path with rounded corners at each turn
+        var rr = 14;
+        var d = '';
+        for (var pi = 0; pi < final.length; pi++) {
+          var prev = final[(pi - 1 + final.length) % final.length];
+          var curr = final[pi];
+          var next = final[(pi + 1) % final.length];
+          // direction vectors
+          var dx1 = curr.x - prev.x, dy1 = curr.y - prev.y;
+          var dx2 = next.x - curr.x, dy2 = next.y - curr.y;
+          var len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+          var len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+          var r = Math.min(rr, len1 / 2, len2 / 2);
+          // points before and after the corner
+          var bx = curr.x - (dx1 / len1) * r;
+          var by = curr.y - (dy1 / len1) * r;
+          var ax = curr.x + (dx2 / len2) * r;
+          var ay = curr.y + (dy2 / len2) * r;
+          // sweep flag for clockwise arc
+          var cross = dx1 * dy2 - dy1 * dx2;
+          var sweep = cross > 0 ? 1 : 0;
+          if (pi === 0) {
+            d += 'M ' + bx + ' ' + by;
+          } else {
+            d += ' L ' + bx + ' ' + by;
+          }
+          d += ' A ' + r + ' ' + r + ' 0 0 ' + sweep + ' ' + ax + ' ' + ay;
+        }
+        d += ' Z';
+
+        highlight.push('<path d="' + d + '" fill="' + hlFill + '" stroke="' + hlStroke + '" stroke-width="2" stroke-dasharray="7 5" />');
+
+        // label
+        highlight.push('<text x="' + bands[0].left + '" y="' + (bands[0].top - 8) + '" style="font-size:12px; fill:#2f6fed; font-weight:700;">同住對象</text>');
+        svg += highlight.join('');
+      }
+
+      svg += '<g stroke="#8ca0c4" stroke-width="2.4" fill="none">' + lines.map(function(line) {
+        var extra = line.cls === 'widow' ? ' stroke-dasharray="8 5"' : '';
+        return '<line x1="' + line.x1 + '" y1="' + line.y1 + '" x2="' + line.x2 + '" y2="' + line.y2 + '"' + extra + ' />';
+      }).join('') + '</g>';
+      svg += nodeLayer.join('');
+      svg += '</svg>';
+      box.innerHTML = svg;
+    }
+    document.getElementById('nameInput').addEventListener('input', function() { syncFamilyMainName(); refreshCoResidentChecklist(); });
+    document.getElementById('genderSelect').addEventListener('change', function() { refreshCoResidentChecklist(); });
+    document.getElementById('marriageSelect').addEventListener('change', function() { toggleFamilyParentFields(); refreshCoResidentChecklist(); });
+    document.getElementById('familyFatherStatus').addEventListener('change', refreshCoResidentChecklist);
+    document.getElementById('familyMotherStatus').addEventListener('change', refreshCoResidentChecklist);
+    document.getElementById('familySpouseFatherStatus').addEventListener('change', refreshCoResidentChecklist);
+    document.getElementById('familySpouseMotherStatus').addEventListener('change', refreshCoResidentChecklist);
+    document.getElementById('caregiverHasSelect').addEventListener('change', toggleCaregiverFields);
+    document.getElementById('caregiverGenderSelect').addEventListener('change', refreshCoResidentChecklist);
+    document.getElementById('familyChildTotal').addEventListener('change', renderChildForms);
+    document.getElementById('renderFamilyTreeBtn').addEventListener('click', renderFamilyTree);
+    document.getElementById('coResidentChecklist').addEventListener('change', function(e) {
+      if (e.target && e.target.value === 'case') e.target.checked = true;
+    });
+
+    syncFamilyMainName();
+    toggleFamilyParentFields();
+    toggleCaregiverFields();
+    renderChildForms();
+  </script>
+  <script src="diagnosis-data.js"></script>
+  <script>
+    var diagnosisCount = 0;
+
+    function setupDiagnosisSearch(n) {
+      const input = document.getElementById('diagnosisSearch' + n);
+      const codeInput = document.getElementById('diagnosisCode' + n);
+      const nameInput = document.getElementById('diagnosisName' + n);
+      const suggestionsBox = document.getElementById('diagnosisSuggestions' + n);
+      const resultBox = document.getElementById('diagnosisResult' + n);
+
+      input.addEventListener("input", function() {
+        const keyword = this.value.trim().toLowerCase();
+        codeInput.value = "";
+        nameInput.value = "";
+        resultBox.innerHTML = "尚未選擇";
+
+        if (!keyword) { suggestionsBox.innerHTML = ""; return; }
+
+        const matched = diagnosisList.filter(item =>
+          item.code.toLowerCase().includes(keyword) || item.name.toLowerCase().includes(keyword)
+        ).slice(0, 20);
+
+        if (matched.length === 0) {
+          suggestionsBox.innerHTML = '<div class="diagnosis-empty">找不到符合資料</div>';
+          return;
+        }
+
+        suggestionsBox.innerHTML = matched.map(item =>
+          '<div class="diagnosis-item" data-code="' + item.code + '" data-name="' + item.name + '">' +
+          '<span class="diagnosis-code">' + item.code + '</span> ' + item.name + '</div>'
+        ).join("");
+
+        suggestionsBox.querySelectorAll(".diagnosis-item").forEach(el => {
+          el.addEventListener("click", function() {
+            input.value = this.dataset.name;
+            codeInput.value = this.dataset.code;
+            nameInput.value = this.dataset.name;
+            resultBox.innerHTML = '疾病診斷:' + n + '. ' + this.dataset.name + '　ICD10CM碼: ' + this.dataset.code;
+            suggestionsBox.innerHTML = "";
+          });
+        });
+      });
+
+      document.addEventListener("click", function(e) {
+        if (!suggestionsBox.contains(e.target) && e.target !== input) {
+          suggestionsBox.innerHTML = "";
+        }
+      });
+    }
+
+    function addDiagnosis() {
+      var container = document.getElementById('diagnosisContainer');
+      var currentCount = container.children.length + 1;
+      var wrap = document.createElement('div');
+      wrap.className = 'diagnosis-search-wrap';
+      wrap.style.marginBottom = '14px';
+      var uid = ++diagnosisCount;
+      wrap.setAttribute('data-uid', uid);
+      wrap.innerHTML =
+        '<label>疾病診斷：' + currentCount + ' <span onclick="removeDiagnosis(' + uid + ')" style="color:#c53030; font-size:15px; cursor:pointer; margin-left:8px;">移除</span></label>' +
+        '<input id="diagnosisSearch' + uid + '" type="text" placeholder="請輸入疾病名稱或 ICD10CM 碼" autocomplete="off" />' +
+        '<input id="diagnosisCode' + uid + '" type="hidden" />' +
+        '<input id="diagnosisName' + uid + '" type="hidden" />' +
+        '<div id="diagnosisSuggestions' + uid + '" class="diagnosis-suggestions"></div>' +
+        '<div id="diagnosisResult' + uid + '" class="diagnosis-result">尚未選擇</div>';
+      container.appendChild(wrap);
+      setupDiagnosisSearch(uid);
+    }
+
+    function renumberDiagnosis() {
+      var container = document.getElementById('diagnosisContainer');
+      var wraps = container.children;
+      for (var i = 0; i < wraps.length; i++) {
+        var label = wraps[i].querySelector('label');
+        var span = label.querySelector('span');
+        label.firstChild.textContent = '疾病診斷：' + (i + 1) + ' ';
+      }
+    }
+
+    function removeDiagnosis(uid) {
+      var container = document.getElementById('diagnosisContainer');
+      var wrap = container.querySelector('[data-uid="' + uid + '"]');
+      if (wrap) {
+        wrap.remove();
+        renumberDiagnosis();
+      }
+    }
+
+    addDiagnosis();
+  </script>
+  <script src="karnofsky-data.js"></script>
+  <script>
+    (function() {
+      var select = document.getElementById('karnofskySelect');
+      var options = getKarnofskyOptions();
+      options.forEach(function(item) {
+        var opt = document.createElement('option');
+        opt.value = item.value;
+        opt.textContent = item.label;
+        select.appendChild(opt);
+      });
+      select.value = '4級';
+    })();
+  </script>
+  <script src="clinic-doctor-data.js"></script>
+  <script>
+    function getAllClinics() {
+      var base = getClinicDoctorList().map(function(item) { return item.clinic; });
+      var added = JSON.parse(localStorage.getItem('clinicsAdded') || '[]');
+      var excluded = JSON.parse(localStorage.getItem('clinicsExcluded') || '[]');
+      var all = base.concat(added);
+      var unique = [];
+      for (var i = 0; i < all.length; i++) {
+        if (unique.indexOf(all[i]) === -1) unique.push(all[i]);
+      }
+      return unique.filter(function(x) { return excluded.indexOf(x) === -1; });
+    }
+
+    function getAllDoctors(clinicName) {
+      var base = getDoctorsByClinic(clinicName);
+      var added = JSON.parse(localStorage.getItem('doctorsAdded_' + clinicName) || '[]');
+      var excluded = JSON.parse(localStorage.getItem('doctorsExcluded_' + clinicName) || '[]');
+      var all = base.concat(added);
+      var unique = [];
+      for (var i = 0; i < all.length; i++) {
+        if (unique.indexOf(all[i]) === -1) unique.push(all[i]);
+      }
+      return unique.filter(function(x) { return excluded.indexOf(x) === -1; });
+    }
+
+    function renderClinicOptions() {
+      var select = document.getElementById('clinicSelect');
+      var current = select.value;
+      select.innerHTML = '<option value="">請選擇醫院</option>';
+      getAllClinics().forEach(function(name) {
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+      select.value = current;
+    }
+
+    function onClinicChange() {
+      var clinicName = document.getElementById('clinicSelect').value;
+      var doctorSelect = document.getElementById('doctorSelect');
+      doctorSelect.innerHTML = '';
+      if (!clinicName) {
+        doctorSelect.innerHTML = '<option value="">請先選擇醫院</option>';
+        document.getElementById('doctorEditPanel').classList.add('hidden');
+        return;
+      }
+      var doctors = getAllDoctors(clinicName);
+      if (doctors.length === 0) {
+        doctorSelect.innerHTML = '<option value="">無醫師資料</option>';
+      } else {
+        doctors.forEach(function(name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          doctorSelect.appendChild(opt);
+        });
+      }
+      if (!document.getElementById('doctorEditPanel').classList.contains('hidden')) {
+        renderDoctorList();
+      }
+    }
+
+    function toggleClinicEdit() {
+      var panel = document.getElementById('clinicEditPanel');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) renderClinicList();
+    }
+
+    function renderClinicList() {
+      var listDiv = document.getElementById('clinicList');
+      var clinics = getAllClinics();
+      listDiv.innerHTML = '';
+      clinics.forEach(function(name) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eef2f7;';
+        row.innerHTML = '<span>' + name + '</span>' +
+          '<span onclick="removeClinic(\'' + name.replace(/'/g, "\\'") + '\')" style="color:#c53030; font-size:14px; cursor:pointer;">移除</span>';
+        listDiv.appendChild(row);
+      });
+    }
+
+    function addClinic() {
+      var input = document.getElementById('clinicNewName');
+      var name = input.value.trim();
+      if (!name) return;
+      if (getAllClinics().indexOf(name) !== -1) { alert('此醫院已存在'); return; }
+      var added = JSON.parse(localStorage.getItem('clinicsAdded') || '[]');
+      added.push(name);
+      localStorage.setItem('clinicsAdded', JSON.stringify(added));
+      input.value = '';
+      renderClinicOptions();
+      renderClinicList();
+    }
+
+    function removeClinic(name) {
+      var added = JSON.parse(localStorage.getItem('clinicsAdded') || '[]');
+      var idx = added.indexOf(name);
+      if (idx !== -1) { added.splice(idx, 1); localStorage.setItem('clinicsAdded', JSON.stringify(added)); }
+      var base = getClinicDoctorList().map(function(item) { return item.clinic; });
+      if (base.indexOf(name) !== -1) {
+        var excluded = JSON.parse(localStorage.getItem('clinicsExcluded') || '[]');
+        if (excluded.indexOf(name) === -1) { excluded.push(name); localStorage.setItem('clinicsExcluded', JSON.stringify(excluded)); }
+      }
+      renderClinicOptions();
+      renderClinicList();
+      onClinicChange();
+    }
+
+    function toggleDoctorEdit() {
+      var clinicName = document.getElementById('clinicSelect').value;
+      if (!clinicName) { alert('請先選擇醫院'); return; }
+      var panel = document.getElementById('doctorEditPanel');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) renderDoctorList();
+    }
+
+    function renderDoctorList() {
+      var listDiv = document.getElementById('doctorList');
+      var clinicName = document.getElementById('clinicSelect').value;
+      var doctors = getAllDoctors(clinicName);
+      listDiv.innerHTML = '';
+      doctors.forEach(function(name) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eef2f7;';
+        row.innerHTML = '<span>' + name + '</span>' +
+          '<span onclick="removeDoctor(\'' + name.replace(/'/g, "\\'") + '\')" style="color:#c53030; font-size:14px; cursor:pointer;">移除</span>';
+        listDiv.appendChild(row);
+      });
+    }
+
+    function addDoctor() {
+      var clinicName = document.getElementById('clinicSelect').value;
+      if (!clinicName) { alert('請先選擇醫院'); return; }
+      var input = document.getElementById('doctorNewName');
+      var name = input.value.trim();
+      if (!name) return;
+      if (getAllDoctors(clinicName).indexOf(name) !== -1) { alert('此醫師已存在'); return; }
+      var key = 'doctorsAdded_' + clinicName;
+      var added = JSON.parse(localStorage.getItem(key) || '[]');
+      added.push(name);
+      localStorage.setItem(key, JSON.stringify(added));
+      input.value = '';
+      onClinicChange();
+      renderDoctorList();
+    }
+
+    function removeDoctor(name) {
+      var clinicName = document.getElementById('clinicSelect').value;
+      var key = 'doctorsAdded_' + clinicName;
+      var added = JSON.parse(localStorage.getItem(key) || '[]');
+      var idx = added.indexOf(name);
+      if (idx !== -1) { added.splice(idx, 1); localStorage.setItem(key, JSON.stringify(added)); }
+      var base = getDoctorsByClinic(clinicName);
+      if (base.indexOf(name) !== -1) {
+        var exKey = 'doctorsExcluded_' + clinicName;
+        var excluded = JSON.parse(localStorage.getItem(exKey) || '[]');
+        if (excluded.indexOf(name) === -1) { excluded.push(name); localStorage.setItem(exKey, JSON.stringify(excluded)); }
+      }
+      onClinicChange();
+      renderDoctorList();
+    }
+
+    renderClinicOptions();
+  </script>
+  <script src="referral-data.js"></script>
+  <script>
+    function renderReferralUnits() {
+      var select = document.getElementById("referralUnit");
+      var units = getReferralUnits();
+      select.innerHTML = '<option value="">請選擇轉介單位</option>';
+      units.forEach(function(unit) {
+        var option = document.createElement("option");
+        option.value = unit;
+        option.textContent = unit;
+        select.appendChild(option);
+      });
+    }
+
+    function toggleReferralEdit() {
+      var panel = document.getElementById("referralEditPanel");
+      panel.classList.toggle("hidden");
+      if (!panel.classList.contains("hidden")) {
+        renderReferralList();
+      }
+    }
+
+    function renderReferralList() {
+      var listDiv = document.getElementById("referralUnitList");
+      var units = getReferralUnits();
+      listDiv.innerHTML = "";
+      units.forEach(function(unit) {
+        var row = document.createElement("div");
+        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eef2f7;";
+        row.innerHTML = '<span>' + unit + '</span>' +
+          '<span onclick="removeReferralUnit(\'' + unit.replace(/'/g, "\\'") + '\')" style="color:#c53030; font-size:14px; cursor:pointer;">移除</span>';
+        listDiv.appendChild(row);
+      });
+    }
+
+    function addReferralUnit() {
+      var input = document.getElementById("referralNewUnit");
+      var name = input.value.trim();
+      if (!name) return;
+      var all = getReferralUnits();
+      if (all.indexOf(name) !== -1) { alert("此單位已存在"); return; }
+      var saved = JSON.parse(localStorage.getItem("referralUnits") || "[]");
+      saved.push(name);
+      localStorage.setItem("referralUnits", JSON.stringify(saved));
+      input.value = "";
+      renderReferralUnits();
+      renderReferralList();
+    }
+
+    function removeReferralUnit(name) {
+      var saved = JSON.parse(localStorage.getItem("referralUnits") || "[]");
+      var idx = saved.indexOf(name);
+      if (idx !== -1) {
+        saved.splice(idx, 1);
+        localStorage.setItem("referralUnits", JSON.stringify(saved));
+      }
+      var baseList = referralUnitRawText.split(/\r?\n/).map(function(x){return x.trim()}).filter(function(x){return x});
+      if (baseList.indexOf(name) !== -1) {
+        var excluded = JSON.parse(localStorage.getItem("referralUnitsExcluded") || "[]");
+        if (excluded.indexOf(name) === -1) {
+          excluded.push(name);
+          localStorage.setItem("referralUnitsExcluded", JSON.stringify(excluded));
+        }
+      }
+      renderReferralUnits();
+      renderReferralList();
+    }
+
+    renderReferralUnits();
+  </script>
+
+  <script>
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function getCurrentHomeUser() {
+      return JSON.parse(localStorage.getItem("currentHomeUser_v1") || "null");
+    }
+
+    function getHomeCases() {
+      return JSON.parse(localStorage.getItem("homeCases_v2") || "[]");
+    }
+
+    function saveHomeCases(list) {
+      localStorage.setItem("homeCases_v2", JSON.stringify(list));
+    }
+
+    function pad2(v) {
+      return String(v || "").padStart(2, "0");
+    }
+
+    function buildBirthdayText() {
+      var y = document.getElementById("birthYear").value.trim();
+      var m = document.getElementById("birthMonth").value.trim();
+      var d = document.getElementById("birthDay").value.trim();
+      if (!y && !m && !d) return "";
+      return y + "/" + pad2(m) + "/" + pad2(d);
+    }
+
+    function fillBirthdayText(text) {
+      if (!text) return;
+      var parts = text.split("/");
+      document.getElementById("birthYear").value = parts[0] || "";
+      document.getElementById("birthMonth").value = parts[1] || "";
+      document.getElementById("birthDay").value = parts[2] || "";
+    }
+
+    function goBackHome() {
+      window.location.href = "居家照護首頁.html";
+    }
+
+    function getSelectedCloseReason() {
+      var checked = document.querySelector('input[name="closeReason"]:checked');
+      return checked ? checked.value : "";
+    }
+
+    function saveCaseToHome() {
+      var caseNo = (document.getElementById("caseNoInput") || {}).value?.trim() || "";
+      var name = (document.getElementById("nameInput") || {}).value?.trim() || "";
+      if (!caseNo || !name) {
+        alert("請至少填寫家字號與姓名");
+        return;
+      }
+
+      var currentUser = getCurrentHomeUser();
+      var caseId = getQueryParam("caseId");
+      var list = getHomeCases();
+
+      var closeReason = getSelectedCloseReason();
+      var hasCloseDate = (document.getElementById("closeDateYear").value.trim() || document.getElementById("closeDateMonth").value.trim() || document.getElementById("closeDateDay").value.trim());
+
+      var record = {
+        id: caseId || ("c" + Date.now()),
+        caseNo: caseNo,
+        name: name,
+        insurance: (document.getElementById("insuranceSelect") || {}).value || "健保",
+        majorDue: (document.getElementById("majorIllnessDate") || {}).value?.trim() || "",
+        transportFee: "",
+        selfPaidTube: "",
+        tube: caseId ? ((list.find(function(x){ return x.id === caseId; }) || {}).tube || "") : "",
+        address: (document.getElementById("addressInput") || {}).value?.trim() || "",
+        admitDate: (document.getElementById("admitDateInput") || {}).value?.trim() || "",
+        idNo: (document.getElementById("idNoInput") || {}).value?.trim() || "",
+        birthday: buildBirthdayText(),
+        vpnClosed: hasCloseDate ? "已結案" : "",
+        homeCare: (document.getElementById("clinicSelect") || {}).value || "",
+        doctor: (document.getElementById("doctorSelect") || {}).value || "",
+        mainCare: (document.getElementById("mainCareSelect") || {}).value || (currentUser ? currentUser.username : ""),
+        direction: hasCloseDate ? "已結案" : "追蹤中",
+        status: hasCloseDate ? "已結案" : "未結案",
+        admitted: "未住院",
+        lifeStatus: closeReason === "死亡" ? "死亡" : "存活",
+        assignedTo: [((document.getElementById("mainCareSelect") || {}).value || (currentUser ? currentUser.username : ""))].filter(Boolean)
+      };
+
+      var idx = list.findIndex(function(item) { return item.id === record.id; });
+      if (idx >= 0) {
+        list[idx] = Object.assign({}, list[idx], record);
+      } else {
+        if (list.some(function(item) { return item.caseNo === record.caseNo; })) {
+          alert("家字號已存在，若要修改請從首頁點『進入』該個案");
+          return;
+        }
+        list.push(record);
+      }
+
+      saveHomeCases(list);
+      alert("個案已儲存，將回到首頁");
+      goBackHome();
+    }
+
+    function loadCaseFromHome() {
+      var caseId = getQueryParam("caseId");
+      if (caseId) {
+        document.getElementById("linkVisitA").href = "訪視紀錄A單.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkVisitB").href = "訪視紀錄B單.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkNursingUrine").href = "護理評估及護理計劃單_排尿型態改變_v1.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkNursingWound").href = "護理評估及護理計畫單_傷口.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkBreathCare").href = "申永居家呼吸照護所護理紀錄單.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkMedRecord").href = "藥物使用紀錄單.html?caseId=" + encodeURIComponent(caseId);
+        document.getElementById("linkDrugMatrix").href = "藥物矩陣Code表單.html?caseId=" + encodeURIComponent(caseId);
+      }
+      if (!caseId) return;
+
+      var list = getHomeCases();
+      var item = list.find(function(x) { return x.id === caseId; });
+      if (!item) return;
+
+      document.getElementById("nameInput").value = item.name || "";
+      if (document.getElementById("familyMainName")) document.getElementById("familyMainName").value = item.name || "";
+      if (document.getElementById("caseNoInput")) document.getElementById("caseNoInput").value = item.caseNo || "";
+      if (document.getElementById("idNoInput")) document.getElementById("idNoInput").value = item.idNo || "";
+      if (document.getElementById("addressInput")) document.getElementById("addressInput").value = item.address || "";
+      if (document.getElementById("admitDateInput")) document.getElementById("admitDateInput").value = item.admitDate || "";
+      fillBirthdayText(item.birthday || "");
+      if (item.insurance && document.getElementById("insuranceSelect")) {
+        document.getElementById("insuranceSelect").value = item.insurance;
+        if (typeof updateTopSummary === "function") updateTopSummary();
+      }
+      if (document.getElementById("majorIllnessDate")) document.getElementById("majorIllnessDate").value = item.majorDue || "";
+      if (item.majorDue) {
+        document.getElementById("majorIllnessSelect").value = "有";
+        if (typeof toggleMajorIllness === "function") toggleMajorIllness();
+        if (typeof updateTopSummary === "function") updateTopSummary();
+      }
+      if (item.mainCare && document.getElementById("mainCareSelect")) document.getElementById("mainCareSelect").value = item.mainCare;
+      if (item.homeCare && document.getElementById("clinicSelect")) {
+        var clinicOpt = Array.from(document.getElementById("clinicSelect").options).some(function(o) { return o.value === item.homeCare; });
+        if (!clinicOpt) {
+          var newClinic = document.createElement("option");
+          newClinic.value = item.homeCare;
+          newClinic.textContent = item.homeCare;
+          document.getElementById("clinicSelect").appendChild(newClinic);
+        }
+        document.getElementById("clinicSelect").value = item.homeCare;
+        if (typeof onClinicChange === "function") onClinicChange();
+      }
+      if (item.doctor && document.getElementById("doctorSelect")) {
+        var opt = Array.from(document.getElementById("doctorSelect").options).some(function(o) { return o.value === item.doctor; });
+        if (!opt) {
+          var newOpt = document.createElement("option");
+          newOpt.value = item.doctor;
+          newOpt.textContent = item.doctor;
+          document.getElementById("doctorSelect").appendChild(newOpt);
+        }
+        document.getElementById("doctorSelect").value = item.doctor;
+      }
+      if (item.status === "已結案") {
+        document.getElementById("closeDateYear").value = "115";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      loadCaseFromHome();
+    });
+  </script>
+
+</body>
+</html>

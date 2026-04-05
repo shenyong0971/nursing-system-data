@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>傷口評估單－連動版 v1</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:#fff; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1500px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; color:#28426e; }
+    .toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+    .meta { color:#667085; font-size:13px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select {
+      width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    button {
+      border:none; border-radius:10px; padding:10px 16px; cursor:pointer;
+      background:#2f6fed; color:#fff; font-size:14px; font-weight:700;
+    }
+    .btn-secondary { background:#eef4ff; color:#2f6fed; border:1px solid #cfe0ff; }
+    .btn-cancel { padding:10px 16px; border-radius:10px; border:1px solid #cfd7e6; background:#fff; color:#667085; cursor:pointer; font-size:14px; font-weight:700; }
+    .subcard { background:#fbfcfe; border:1px solid #e3ebfa; border-radius:12px; padding:16px; }
+    .hint { color:#667085; font-size:13px; margin-top:6px; }
+    .check-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
+    .check-item {
+      display:flex; align-items:flex-start; gap:8px;
+      padding:10px 12px; border:1px solid #dbe5f5; border-radius:10px; background:#fff;
+    }
+    .check-item input[type="checkbox"], .check-item input[type="radio"] { width:auto; margin-top:3px; }
+    .body-map {
+      display:grid; grid-template-columns: 1fr 1fr; gap:14px; align-items:start;
+    }
+    .map-box {
+      background:#fff; border:1px dashed #bfd0f7; border-radius:12px; padding:16px; text-align:center;
+    }
+    .map-grid {
+      display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:10px;
+    }
+    .map-cell {
+      border:1px solid #dbe5f5; border-radius:10px; padding:12px; background:#fbfcfe; font-weight:700; color:#28426e;
+    }
+    .table-wrap { overflow:auto; border:1px solid #dce5f3; border-radius:12px; }
+    table { border-collapse:collapse; width:100%; min-width:1800px; }
+    th, td { border:1px solid #dce5f3; padding:10px 8px; text-align:left; vertical-align:top; font-size:14px; }
+    thead th { background:#f6f9ff; color:#28426e; font-weight:700; white-space:nowrap; }
+    tbody tr:hover { background:#f8fbff; }
+    .mini-input, .mini-select {
+      width:100%; min-width:90px; border:1px solid #cfd7e6; border-radius:8px; padding:8px 10px; font-size:13px;
+    }
+    .mini-textarea {
+      width:100%; min-width:140px; border:1px solid #cfd7e6; border-radius:8px; padding:8px 10px; font-size:13px; min-height:60px;
+    }
+    .mini-btn {
+      padding:6px 12px; border-radius:8px; border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed;
+      cursor:pointer; font-size:12px; font-weight:700;
+    }
+    .btn-delete {
+      padding:6px 12px; border-radius:8px; border:1px solid #f2c7c4; background:#fff0ef; color:#b42318;
+      cursor:pointer; font-size:12px; font-weight:700;
+    }
+    .empty {
+      color:#667085; background:#fbfcfe; border:1px dashed #dbe5f5; border-radius:12px; padding:18px; text-align:center;
+    }
+    .note-box {
+      background:#fffdf7; border:1px solid #f0d98c; border-radius:12px; padding:14px 16px; color:#5b4a00;
+      line-height:1.8;
+    }
+    .hidden { display:none !important; }
+    @media (max-width: 900px) {
+      .grid, .grid-2, .grid-3, .body-map { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>傷口評估單－連動版 v1</h1>
+    <p>已整理成和目前系統一致的版型，可直接開啟測試；之後再依你的流程調整欄位與連動。</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#28426e;">個案傷口評估</div>
+          <div class="meta" id="caseMeta">讀取中...</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="goHome()">回首頁</button>
+          <button type="button" class="btn-secondary" onclick="goCasePage()">回個案資料</button>
+          <button type="button" id="btnCancel" class="btn-cancel hidden" onclick="cancelEdit()">取消編輯</button>
+          <button type="button" id="btnSave" onclick="saveWoundRecord()">新增這筆評估</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">基本資料</h2>
+      <div class="grid">
+        <div>
+          <label for="patientName">姓名</label>
+          <input id="patientName" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="caseNo">病歷號 / 家字號</label>
+          <input id="caseNo" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="startDate">評估起始日期</label>
+          <input id="startDate" type="text" placeholder="例如 115/04/01">
+        </div>
+        <div>
+          <label for="endDate">評估結束日期</label>
+          <input id="endDate" type="text" placeholder="例如 115/04/30">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title" id="formTitle">新增傷口評估</h2>
+
+      <div class="subcard" style="margin-bottom:16px;">
+        <div class="grid-2">
+          <div>
+            <label>發生時間</label>
+            <div class="check-grid">
+              <label class="check-item"><input type="radio" name="occurType" value="住院中或收案前" checked> <span>住院中或收案前</span></label>
+              <label class="check-item"><input type="radio" name="occurType" value="出院後或收案後"> <span>出院後或收案後</span></label>
+            </div>
+          </div>
+          <div>
+            <label for="assessmentDate">評估日期</label>
+            <input id="assessmentDate" type="text" placeholder="例如 115/04/02">
+          </div>
+        </div>
+      </div>
+
+      <div class="subcard" style="margin-bottom:16px;">
+        <label>可能因素</label>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" value="臥床不動" class="factor-check"><span>臥床不動</span></label>
+          <label class="check-item"><input type="checkbox" value="營養問題" class="factor-check"><span>營養問題</span></label>
+          <label class="check-item"><input type="checkbox" value="疾病：糖尿病、血管疾病" class="factor-check"><span>疾病：糖尿病、血管疾病</span></label>
+          <label class="check-item"><input type="checkbox" value="其他" id="factorOtherCheck" class="factor-check"><span>其他</span></label>
+        </div>
+        <div id="factorOtherWrap" class="hidden" style="margin-top:12px;">
+          <input id="factorOtherText" type="text" placeholder="請填寫其他可能因素">
+        </div>
+      </div>
+
+      <div class="subcard" style="margin-bottom:16px;">
+        <div class="body-map">
+          <div class="map-box">
+            <div style="font-size:16px; font-weight:700; color:#28426e;">傷口位置標示</div>
+            <div class="hint">目前先做成可直接點選位置與輸入編號，之後可再改成更接近紙本圖示。</div>
+            <div class="map-grid">
+              <div class="map-cell">R前 <input id="posRF" class="mini-input" placeholder="如：1,2" style="margin-top:8px;"></div>
+              <div class="map-cell">L前 <input id="posLF" class="mini-input" placeholder="如：3" style="margin-top:8px;"></div>
+              <div class="map-cell">L後 <input id="posLB" class="mini-input" placeholder="如：4" style="margin-top:8px;"></div>
+              <div class="map-cell">R後 <input id="posRB" class="mini-input" placeholder="如：5" style="margin-top:8px;"></div>
+            </div>
+          </div>
+          <div class="note-box">
+            <div><strong>分期對照</strong></div>
+            <div>Ⅰ：完整皮膚紅斑，指壓不消失</div>
+            <div>Ⅱ：部分皮層缺損，真皮層露出</div>
+            <div>Ⅲ：全層皮膚缺損</div>
+            <div>Ⅳ：全層皮膚及組織缺損</div>
+            <div>Ⅴ：無法分期之壓傷</div>
+            <div>Ⅵ：深層組織壓傷</div>
+            <div style="margin-top:10px;"><strong>疼痛程度</strong>：0～10 分</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>編號</th>
+              <th>大小 / 深淺</th>
+              <th>分期</th>
+              <th>滲液量</th>
+              <th>滲液性狀</th>
+              <th>周圍皮膚狀態</th>
+              <th>疼痛程度</th>
+              <th>護理措施</th>
+              <th>換藥方式 / 頻率</th>
+              <th>評估人員</th>
+            </tr>
+          </thead>
+          <tbody id="detailRows"></tbody>
+        </table>
+      </div>
+      <div class="hint">先預設 3 列可輸入，之後你要改成更多列、列印版、紙本格式，我再幫你調。</div>
+
+      <div style="margin-top:16px;">
+        <label for="generalNote">備註</label>
+        <textarea id="generalNote" placeholder="可補充特殊狀況、照護重點、家屬衛教內容"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 class="section-title" style="margin:0;">歷史評估紀錄</h2>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    var editingIndex = -1;
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function getCases() {
+      return JSON.parse(localStorage.getItem("homeCases_v2") || "[]");
+    }
+
+    function saveCases(list) {
+      localStorage.setItem("homeCases_v2", JSON.stringify(list));
+    }
+
+    function goHome() {
+      window.location.href = "居家照護首頁.html";
+    }
+
+    function goCasePage() {
+      const caseId = getQueryParam("caseId");
+      if (caseId) {
+        window.location.href = "第一頁個案資料.html?caseId=" + encodeURIComponent(caseId);
+      } else {
+        window.location.href = "第一頁個案資料.html";
+      }
+    }
+
+    function getCurrentCase() {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      return list.find(item => item.id === caseId) || null;
+    }
+
+    function renderCaseMeta() {
+      const item = getCurrentCase();
+      const meta = document.getElementById("caseMeta");
+      if (!item) {
+        meta.textContent = "目前未帶入個案，可先手動輸入姓名與病歷號測試";
+        return;
+      }
+      meta.textContent = "姓名：" + (item.name || "") + "｜病歷號：" + (item.caseNo || "") + "｜主護：" + (item.mainCare || "");
+      document.getElementById("patientName").value = item.name || "";
+      document.getElementById("caseNo").value = item.caseNo || "";
+    }
+
+    function renderDetailRows(rows) {
+      const tbody = document.getElementById("detailRows");
+      const data = rows && rows.length ? rows : [{},{},{}];
+      tbody.innerHTML = data.map((row, idx) => `
+        <tr>
+          <td><input class="mini-input" data-field="no" value="${row.no || (idx + 1)}"></td>
+          <td><input class="mini-input" data-field="size" value="${row.size || ""}" placeholder="長×寬×深 (cm)"></td>
+          <td>
+            <select class="mini-select" data-field="stage">
+              <option value="">請選擇</option>
+              <option ${row.stage==="Ⅰ" ? "selected" : ""}>Ⅰ</option>
+              <option ${row.stage==="Ⅱ" ? "selected" : ""}>Ⅱ</option>
+              <option ${row.stage==="Ⅲ" ? "selected" : ""}>Ⅲ</option>
+              <option ${row.stage==="Ⅳ" ? "selected" : ""}>Ⅳ</option>
+              <option ${row.stage==="Ⅴ" ? "selected" : ""}>Ⅴ</option>
+              <option ${row.stage==="Ⅵ" ? "selected" : ""}>Ⅵ</option>
+            </select>
+          </td>
+          <td>
+            <select class="mini-select" data-field="exudateAmount">
+              <option value="">請選擇</option>
+              <option ${row.exudateAmount==="1無" ? "selected" : ""}>1無</option>
+              <option ${row.exudateAmount==="2少" ? "selected" : ""}>2少</option>
+              <option ${row.exudateAmount==="3中" ? "selected" : ""}>3中</option>
+              <option ${row.exudateAmount==="4多" ? "selected" : ""}>4多</option>
+            </select>
+          </td>
+          <td>
+            <select class="mini-select" data-field="exudateType">
+              <option value="">請選擇</option>
+              <option ${row.exudateType==="1清澈" ? "selected" : ""}>1清澈</option>
+              <option ${row.exudateType==="2漿液" ? "selected" : ""}>2漿液</option>
+              <option ${row.exudateType==="3血液" ? "selected" : ""}>3血液</option>
+              <option ${row.exudateType==="4濃液" ? "selected" : ""}>4濃液</option>
+              <option ${row.exudateType==="5壞死" ? "selected" : ""}>5壞死</option>
+            </select>
+          </td>
+          <td>
+            <select class="mini-select" data-field="skinStatus">
+              <option value="">請選擇</option>
+              <option ${row.skinStatus==="1正常" ? "selected" : ""}>1正常</option>
+              <option ${row.skinStatus==="2發白" ? "selected" : ""}>2發白</option>
+              <option ${row.skinStatus==="3發紅" ? "selected" : ""}>3發紅</option>
+              <option ${row.skinStatus==="4水腫" ? "selected" : ""}>4水腫</option>
+              <option ${row.skinStatus==="5浸漬" ? "selected" : ""}>5浸漬</option>
+              <option ${row.skinStatus==="6乾痂" ? "selected" : ""}>6乾痂</option>
+              <option ${row.skinStatus==="7色素沉著" ? "selected" : ""}>7色素沉著</option>
+            </select>
+          </td>
+          <td><input class="mini-input" data-field="pain" value="${row.pain || ""}" placeholder="0-10"></td>
+          <td>
+            <textarea class="mini-textarea" data-field="care">${row.care || ""}</textarea>
+          </td>
+          <td>
+            <textarea class="mini-textarea" data-field="dressing">${row.dressing || ""}</textarea>
+          </td>
+          <td><input class="mini-input" data-field="staff" value="${row.staff || ""}" placeholder="評估人員"></td>
+        </tr>
+      `).join("");
+    }
+
+    function getFactors() {
+      const values = [];
+      document.querySelectorAll(".factor-check:checked").forEach(el => {
+        if (el.value === "其他") {
+          const text = document.getElementById("factorOtherText").value.trim();
+          values.push(text ? ("其他：" + text) : "其他");
+        } else {
+          values.push(el.value);
+        }
+      });
+      return values;
+    }
+
+    function getDetailRowsData() {
+      const trs = Array.from(document.querySelectorAll("#detailRows tr"));
+      return trs.map(tr => {
+        const obj = {};
+        tr.querySelectorAll("[data-field]").forEach(el => {
+          obj[el.dataset.field] = (el.value || "").trim();
+        });
+        return obj;
+      }).filter(row => Object.values(row).some(Boolean));
+    }
+
+    function getFormRecord() {
+      const checkedOccur = document.querySelector('input[name="occurType"]:checked');
+      return {
+        assessmentDate: document.getElementById("assessmentDate").value.trim(),
+        occurType: checkedOccur ? checkedOccur.value : "",
+        factors: getFactors(),
+        patientName: document.getElementById("patientName").value.trim(),
+        caseNo: document.getElementById("caseNo").value.trim(),
+        startDate: document.getElementById("startDate").value.trim(),
+        endDate: document.getElementById("endDate").value.trim(),
+        position: {
+          rf: document.getElementById("posRF").value.trim(),
+          lf: document.getElementById("posLF").value.trim(),
+          lb: document.getElementById("posLB").value.trim(),
+          rb: document.getElementById("posRB").value.trim()
+        },
+        details: getDetailRowsData(),
+        generalNote: document.getElementById("generalNote").value.trim()
+      };
+    }
+
+    function saveWoundRecord() {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      const idx = list.findIndex(item => item.id === caseId);
+
+      if (caseId && idx === -1) {
+        alert("找不到個案資料");
+        return;
+      }
+
+      const record = getFormRecord();
+      if (!record.patientName) {
+        alert("請至少填寫姓名");
+        return;
+      }
+
+      if (caseId) {
+        if (!list[idx].woundAssessments) list[idx].woundAssessments = [];
+        if (editingIndex >= 0) {
+          list[idx].woundAssessments[editingIndex] = record;
+          saveCases(list);
+          alert("傷口評估已更新");
+        } else {
+          list[idx].woundAssessments.push(record);
+          saveCases(list);
+          alert("傷口評估已新增");
+        }
+      } else {
+        localStorage.setItem("tempWoundPreview_v1", JSON.stringify(record));
+        alert("目前未指定個案，已先存成暫存測試資料");
+      }
+
+      cancelEdit();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const caseId = getQueryParam("caseId");
+      const box = document.getElementById("historyList");
+      let records = [];
+
+      if (caseId) {
+        const item = getCurrentCase();
+        if (!item) {
+          box.innerHTML = '<div class="empty">找不到個案資料</div>';
+          return;
+        }
+        records = item.woundAssessments || [];
+      } else {
+        const temp = JSON.parse(localStorage.getItem("tempWoundPreview_v1") || "null");
+        records = temp ? [temp] : [];
+      }
+
+      if (!records.length) {
+        box.innerHTML = '<div class="empty">目前尚無傷口評估紀錄</div>';
+        return;
+      }
+
+      box.innerHTML = records.map((rec, idx) => {
+        const rows = (rec.details || []).map(row => `
+          <tr>
+            <td>${row.no || ""}</td>
+            <td>${row.size || ""}</td>
+            <td>${row.stage || ""}</td>
+            <td>${row.exudateAmount || ""}</td>
+            <td>${row.exudateType || ""}</td>
+            <td>${row.skinStatus || ""}</td>
+            <td>${row.pain || ""}</td>
+            <td>${row.care || ""}</td>
+            <td>${row.dressing || ""}</td>
+            <td>${row.staff || ""}</td>
+          </tr>
+        `).join("");
+
+        return `
+          <div class="subcard" style="margin-bottom:14px;">
+            <div class="toolbar" style="margin-bottom:10px;">
+              <div style="font-weight:700; color:#28426e;">評估 ${idx + 1}｜日期：${rec.assessmentDate || "未填寫"}</div>
+              <div style="display:flex; gap:8px;">
+                ${caseId ? '<button type="button" class="mini-btn" onclick="editRecord(' + idx + ')">編輯</button><button type="button" class="btn-delete" onclick="deleteRecord(' + idx + ')">刪除</button>' : ''}
+              </div>
+            </div>
+            <div class="grid-3" style="margin-bottom:12px;">
+              <div><strong>發生時間：</strong>${rec.occurType || ""}</div>
+              <div><strong>起訖：</strong>${rec.startDate || ""} ～ ${rec.endDate || ""}</div>
+              <div><strong>因素：</strong>${(rec.factors || []).join("、") || ""}</div>
+              <div><strong>位置：</strong>R前 ${rec.position?.rf || ""}｜L前 ${rec.position?.lf || ""}｜L後 ${rec.position?.lb || ""}｜R後 ${rec.position?.rb || ""}</div>
+              <div class="full"><strong>備註：</strong>${rec.generalNote || ""}</div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>編號</th>
+                    <th>大小 / 深淺</th>
+                    <th>分期</th>
+                    <th>滲液量</th>
+                    <th>滲液性狀</th>
+                    <th>周圍皮膚狀態</th>
+                    <th>疼痛程度</th>
+                    <th>護理措施</th>
+                    <th>換藥方式 / 頻率</th>
+                    <th>評估人員</th>
+                  </tr>
+                </thead>
+                <tbody>${rows || '<tr><td colspan="10" style="text-align:center;">本次無明細</td></tr>'}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function editRecord(idx) {
+      const item = getCurrentCase();
+      if (!item || !item.woundAssessments || !item.woundAssessments[idx]) return;
+      const rec = item.woundAssessments[idx];
+      editingIndex = idx;
+
+      document.getElementById("patientName").value = rec.patientName || "";
+      document.getElementById("caseNo").value = rec.caseNo || "";
+      document.getElementById("startDate").value = rec.startDate || "";
+      document.getElementById("endDate").value = rec.endDate || "";
+      document.getElementById("assessmentDate").value = rec.assessmentDate || "";
+      document.querySelectorAll('input[name="occurType"]').forEach(el => {
+        el.checked = el.value === rec.occurType;
+      });
+
+      document.querySelectorAll(".factor-check").forEach(el => el.checked = false);
+      (rec.factors || []).forEach(v => {
+        if (v.startsWith("其他：")) {
+          document.getElementById("factorOtherCheck").checked = true;
+          document.getElementById("factorOtherText").value = v.replace("其他：", "");
+        } else {
+          const match = Array.from(document.querySelectorAll(".factor-check")).find(el => el.value === v);
+          if (match) match.checked = true;
+        }
+      });
+
+      toggleFactorOther();
+      document.getElementById("posRF").value = rec.position?.rf || "";
+      document.getElementById("posLF").value = rec.position?.lf || "";
+      document.getElementById("posLB").value = rec.position?.lb || "";
+      document.getElementById("posRB").value = rec.position?.rb || "";
+      document.getElementById("generalNote").value = rec.generalNote || "";
+      renderDetailRows(rec.details || [{},{},{}]);
+
+      document.getElementById("formTitle").textContent = "編輯傷口評估";
+      document.getElementById("btnSave").textContent = "儲存修改";
+      document.getElementById("btnCancel").classList.remove("hidden");
+      document.getElementById("formTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function deleteRecord(idx) {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      const caseIdx = list.findIndex(item => item.id === caseId);
+      if (caseIdx === -1) return;
+
+      if (!confirm("確定要刪除這筆傷口評估嗎？")) return;
+      list[caseIdx].woundAssessments.splice(idx, 1);
+      saveCases(list);
+      cancelEdit();
+      renderHistory();
+    }
+
+    function clearForm() {
+      document.getElementById("assessmentDate").value = "";
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      document.getElementById("posRF").value = "";
+      document.getElementById("posLF").value = "";
+      document.getElementById("posLB").value = "";
+      document.getElementById("posRB").value = "";
+      document.getElementById("generalNote").value = "";
+      document.getElementById("factorOtherText").value = "";
+      document.querySelectorAll(".factor-check").forEach(el => el.checked = false);
+      const firstOccur = document.querySelector('input[name="occurType"]');
+      if (firstOccur) firstOccur.checked = true;
+      toggleFactorOther();
+      renderDetailRows([{},{},{}]);
+
+      const item = getCurrentCase();
+      document.getElementById("patientName").value = item ? (item.name || "") : "";
+      document.getElementById("caseNo").value = item ? (item.caseNo || "") : "";
+    }
+
+    function cancelEdit() {
+      editingIndex = -1;
+      clearForm();
+      document.getElementById("formTitle").textContent = "新增傷口評估";
+      document.getElementById("btnSave").textContent = "新增這筆評估";
+      document.getElementById("btnCancel").classList.add("hidden");
+    }
+
+    function toggleFactorOther() {
+      const checked = document.getElementById("factorOtherCheck").checked;
+      document.getElementById("factorOtherWrap").classList.toggle("hidden", !checked);
+    }
+
+    document.getElementById("factorOtherCheck").addEventListener("change", toggleFactorOther);
+
+    renderCaseMeta();
+    renderDetailRows([{},{},{}]);
+    renderHistory();
+    toggleFactorOther();
+  </script>
+</body>
+</html>

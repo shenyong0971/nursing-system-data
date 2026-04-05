@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>護理紀錄單－連動版 v1</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:#fff; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1500px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; color:#28426e; }
+    .toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+    .meta { color:#667085; font-size:13px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select {
+      width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    button {
+      border:none; border-radius:10px; padding:10px 16px; cursor:pointer;
+      background:#2f6fed; color:#fff; font-size:14px; font-weight:700;
+    }
+    .btn-secondary { background:#eef4ff; color:#2f6fed; border:1px solid #cfe0ff; }
+    .mini-input, .mini-textarea {
+      width:100%; border:1px solid #cfd7e6; border-radius:8px; padding:8px 10px; font-size:13px; background:#fff;
+    }
+    .mini-textarea { min-height:72px; resize:vertical; }
+    .mini-btn { padding:6px 12px; border-radius:8px; border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; cursor:pointer; font-size:12px; font-weight:700; }
+    .table-wrap { overflow:auto; border:1px solid #dce5f3; border-radius:12px; }
+    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    th, td { border:1px solid #dce5f3; padding:10px 8px; text-align:left; vertical-align:top; font-size:14px; }
+    thead th { background:#f6f9ff; color:#28426e; font-weight:700; white-space:nowrap; }
+    tbody tr:hover { background:#f8fbff; }
+    .empty { color:#667085; background:#fbfcfe; border:1px dashed #dbe5f5; border-radius:12px; padding:18px; text-align:center; }
+    .history-card { background:#fff; border:1px solid #dce5f3; border-radius:12px; padding:14px; margin-bottom:12px; }
+    .history-title { font-weight:700; color:#28426e; margin-bottom:8px; }
+    @media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>護理紀錄單－連動版 v1</h1>
+    <p>依目前專案風格整理成可直接開啟測試版，含個案連動與多筆護理紀錄。</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#28426e;">護理紀錄</div>
+          <div class="meta" id="caseMeta">讀取中...</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="goHome()">回首頁</button>
+          <button type="button" class="btn-secondary" onclick="goCasePage()">回個案資料</button>
+          <button type="button" class="btn-secondary" onclick="addRecordRow()">新增一列</button>
+          <button type="button" onclick="saveNursingSheet()">儲存這頁紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">基本資料</h2>
+      <div class="grid">
+        <div>
+          <label for="caseNo">病歷號</label>
+          <input id="caseNo" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="patientName">姓名</label>
+          <input id="patientName" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="admitDate">收案日</label>
+          <input id="admitDate" type="text" placeholder="例如 115/05/01">
+        </div>
+        <div>
+          <label for="recordStaff">記錄人員</label>
+          <select id="recordStaff">
+            <option value="">請選擇</option>
+            <option>楊宛庭</option>
+            <option>廖容秀</option>
+            <option>沈香杏</option>
+            <option>沙珮宜</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">護理紀錄內容</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:180px;">日期 / 時間</th>
+              <th style="width:260px;">處置</th>
+              <th>護理紀錄 / 評值</th>
+              <th style="width:90px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 class="section-title" style="margin:0;">歷史護理紀錄</h2>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "nursingRecords_v1";
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function getCases() {
+      return JSON.parse(localStorage.getItem("homeCases_v2") || "[]");
+    }
+
+    function getCurrentCase() {
+      const caseId = getQueryParam("caseId");
+      return getCases().find(item => item.id === caseId) || null;
+    }
+
+    function goHome() { window.location.href = "居家照護首頁.html"; }
+    function goCasePage() {
+      const caseId = getQueryParam("caseId");
+      window.location.href = caseId ? ("第一頁個案資料.html?caseId=" + encodeURIComponent(caseId)) : "第一頁個案資料.html";
+    }
+
+    function renderCaseMeta() {
+      // 自動帶入登入帳號為記錄人員
+      const currentUser = JSON.parse(localStorage.getItem("currentHomeUser_v1") || "null");
+      if (currentUser && currentUser.username) {
+        const sel = document.getElementById("recordStaff");
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === currentUser.username) { sel.selectedIndex = i; break; }
+        }
+      }
+
+      const item = getCurrentCase();
+      const meta = document.getElementById("caseMeta");
+      if (!item) {
+        meta.textContent = "目前未帶入個案，可先手動輸入姓名與病歷號測試";
+        return;
+      }
+      meta.textContent = "姓名：" + (item.name || "") + "｜病歷號：" + (item.caseNo || "") + "｜主護：" + (item.mainCare || "");
+      document.getElementById("patientName").value = item.name || "";
+      document.getElementById("caseNo").value = item.caseNo || "";
+      document.getElementById("admitDate").value = item.admitDate || "";
+    }
+
+    function createRecordRow(row = {}) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input class="mini-input" data-field="dateTime" value="${row.dateTime || ""}" placeholder="例如 115/05/01 09:30"></td>
+        <td><textarea class="mini-textarea" data-field="treatment" placeholder="請輸入處置">${row.treatment || ""}</textarea></td>
+        <td><textarea class="mini-textarea" data-field="note" placeholder="請輸入護理紀錄 / 評值">${row.note || ""}</textarea></td>
+        <td><button type="button" class="mini-btn" onclick="removeRecordRow(this)">刪除</button></td>
+      `;
+      document.getElementById("recordRows").appendChild(tr);
+    }
+
+    function addRecordRow() { createRecordRow(); }
+
+    function removeRecordRow(btn) {
+      const tbody = document.getElementById("recordRows");
+      if (tbody.children.length <= 1) {
+        alert("至少保留一列");
+        return;
+      }
+      btn.closest("tr").remove();
+    }
+
+    function getRowsData() {
+      return Array.from(document.querySelectorAll("#recordRows tr")).map(tr => {
+        const row = {};
+        tr.querySelectorAll("[data-field]").forEach(el => row[el.dataset.field] = (el.value || "").trim());
+        return row;
+      }).filter(row => Object.values(row).some(Boolean));
+    }
+
+    function getAllRecords() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    }
+
+    function saveAllRecords(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function saveNursingSheet() {
+      const caseId = getQueryParam("caseId");
+      const record = {
+        id: Date.now(),
+        caseId: caseId,
+        caseNo: document.getElementById("caseNo").value.trim(),
+        patientName: document.getElementById("patientName").value.trim(),
+        admitDate: document.getElementById("admitDate").value.trim(),
+        recordStaff: document.getElementById("recordStaff").value.trim(),
+        rows: getRowsData(),
+        createdAt: new Date().toLocaleString("zh-TW")
+      };
+      const list = getAllRecords();
+      list.unshift(record);
+      saveAllRecords(list);
+      renderHistory();
+      alert("已儲存護理紀錄");
+    }
+
+    function renderHistory() {
+      const caseId = getQueryParam("caseId");
+      const list = getAllRecords().filter(item => !caseId || item.caseId === caseId);
+      const box = document.getElementById("historyList");
+      if (!list.length) {
+        box.innerHTML = '<div class="empty">尚未有護理紀錄</div>';
+        return;
+      }
+      box.innerHTML = list.map(item => `
+        <div class="history-card">
+          <div class="history-title">${item.patientName || "未填姓名"}｜${item.admitDate || "未填收案日"}</div>
+          <div class="meta">病歷號：${item.caseNo || "-"}｜記錄人員：${item.recordStaff || "-"}｜建立時間：${item.createdAt || "-"}</div>
+          <div class="meta" style="margin-top:8px;">共 ${item.rows?.length || 0} 筆護理紀錄</div>
+        </div>
+      `).join("");
+    }
+
+    createRecordRow();
+    createRecordRow();
+    createRecordRow();
+
+    renderCaseMeta();
+    renderHistory();
+  </script>
+</body>
+</html>

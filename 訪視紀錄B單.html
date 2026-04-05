@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>訪視紀錄B單</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:white; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1280px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:white; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select { width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
+    textarea { min-height: 88px; resize: vertical; }
+    .hint { color:#667085; font-size:13px; margin-top:6px; }
+    .table-like { width:100%; border-collapse:collapse; }
+    .table-like th, .table-like td { border:1px solid #dce5f3; padding:10px; vertical-align:top; }
+    .table-like th { background:#f6f9ff; text-align:left; color:#28426e; width:220px; }
+    .signature-box { min-height: 72px; background:#fbfcfe; border:1px dashed #bfd0f7; border-radius:12px; }
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>訪視紀錄B單</h1>
+    <p>神經肌肉骨骼 / 護理處置 / 訪視簽章</p>
+  </header>
+
+  <div style="max-width:1280px; margin:18px auto 0; padding:0 16px;">
+    <div style="background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:14px 18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <a href="訪視紀錄A單.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">← 訪視紀錄A單</a>
+      <a href="第一頁個案資料.html" style="border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; border-radius:10px; padding:8px 16px; font-weight:700; text-decoration:none;">← 返回基本資料</a>
+      <button onclick="saveForm()" style="border:none; background:#2f6fed; color:#fff; border-radius:10px; padding:8px 16px; font-weight:700; cursor:pointer;">儲存</button>
+      <span id="saveMsg" style="color:#2a7a2a; font-weight:700; display:none;">已儲存 ✓</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2 class="section-title">表單 B｜神經肌肉骨骼 / 護理處置 / 訪視簽章</h2>
+      <table class="table-like">
+        <tr><th>柯氏量表</th><td><select><option value="">請選擇</option><option>0級</option><option>1級</option><option>2級</option><option>3級</option><option>4級</option></select></td></tr>
+        <tr><th>肌肉強度量表（0-5分）</th><td><div class="grid"><div><label>左上肢</label><input></div><div><label>右上肢</label><input></div><div><label>左下肢</label><input></div><div><label>右下肢</label><input></div></div></td></tr>
+        <tr><th>關節攣縮</th><td><div class="grid-2"><div><label>是否有關節攣縮</label><select><option value="">請選擇</option><option>無</option><option>有</option></select></div><div><label>部位</label><input placeholder="例如 左肩、右膝"></div></div><div class="hint">原始表單為左右各部位圈選，這版先改成可直接手填輸入。</div></td></tr>
+        <tr><th>截肢</th><td><div class="grid-2"><div><label>是否截肢</label><select><option value="">請選擇</option><option>無</option><option>有</option></select></div><div><label>部位</label><input placeholder="若有請填寫"></div></div></td></tr>
+        <tr><th>平衡</th><td><div class="grid-3"><div><label>坐姿</label><select><option value="">請選擇</option><option>穩定</option><option>稍穩定</option><option>極不穩定</option><option>無法執行</option></select></div><div><label>站立</label><select><option value="">請選擇</option><option>穩定</option><option>稍穩定</option><option>極不穩定</option><option>無法執行</option></select></div><div><label>步行</label><select><option value="">請選擇</option><option>穩定</option><option>稍穩定</option><option>極不穩定</option><option>無法執行</option></select></div></div></td></tr>
+        <tr><th>步行輔具</th><td><select><option value="">請選擇</option><option>不需</option><option>手杖</option><option>四腳助行器</option><option>輪椅</option><option>義肢</option></select></td></tr>
+        <tr><th>護理處置</th><td><div class="grid-2"><div><label>更換氣切</label><input placeholder="號、材質、氣囊"></div><div><label>更換胃管</label><input placeholder="號、材質、固定公分"></div><div><label>更換尿管</label><input placeholder="號、材質"></div><div><label>單導</label><input></div><div><label>傷口護理</label><input></div><div><label>代採檢體</label><input></div><div class="full"><label>其他</label><textarea></textarea></div></div></td></tr>
+        <tr><th>醫師居家訪視</th><td><textarea></textarea></td></tr>
+        <tr><th>醫護人員簽章</th><td><div class="signature-box"></div></td></tr>
+        <tr><th>個案家屬簽章</th><td><div class="signature-box"></div></td></tr>
+      </table>
+    </div>
+  </div>
+  <script>
+    const caseId = new URLSearchParams(window.location.search).get('caseId') || 'default';
+    const SAVE_KEY = 'visitFormB_' + caseId;
+
+    function saveForm() {
+      const inputs = document.querySelectorAll('input:not([type=checkbox]), textarea, select');
+      const checkboxes = document.querySelectorAll('input[type=checkbox]');
+      const data = {
+        inputs: Array.from(inputs).map(el => el.value),
+        checkboxes: Array.from(checkboxes).map(el => el.checked)
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      const msg = document.getElementById('saveMsg');
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 2000);
+    }
+
+    function loadForm() {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      const inputs = document.querySelectorAll('input:not([type=checkbox]), textarea, select');
+      const checkboxes = document.querySelectorAll('input[type=checkbox]');
+      if (data.inputs) data.inputs.forEach((val, i) => { if (inputs[i]) inputs[i].value = val; });
+      if (data.checkboxes) data.checkboxes.forEach((val, i) => { if (checkboxes[i]) checkboxes[i].checked = val; });
+      // 將 caseId 帶入 A單連結
+      const linkA = document.querySelector('a[href^="訪視紀錄A單"]');
+      if (linkA && caseId !== 'default') linkA.href = '訪視紀錄A單.html?caseId=' + encodeURIComponent(caseId);
+    }
+
+    window.addEventListener('DOMContentLoaded', loadForm);
+  </script>
+</body>
+</html>

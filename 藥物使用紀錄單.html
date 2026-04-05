@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>藥物記錄單－連動版 v1</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:#fff; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1500px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; color:#28426e; }
+    .toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+    .meta { color:#667085; font-size:13px; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select {
+      width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    button {
+      border:none; border-radius:10px; padding:10px 16px; cursor:pointer;
+      background:#2f6fed; color:#fff; font-size:14px; font-weight:700;
+    }
+    .btn-secondary { background:#eef4ff; color:#2f6fed; border:1px solid #cfe0ff; }
+    .btn-danger { background:#d64545; }
+    .btn-cancel { padding:10px 16px; border-radius:10px; border:1px solid #cfd7e6; background:#fff; color:#667085; cursor:pointer; font-size:14px; font-weight:700; }
+    .subcard { background:#fbfcfe; border:1px solid #e3ebfa; border-radius:12px; padding:16px; }
+    .hint { color:#667085; font-size:13px; margin-top:6px; }
+    .table-wrap { overflow:auto; border:1px solid #dce5f3; border-radius:12px; }
+    table { border-collapse:collapse; width:100%; min-width:1450px; }
+    th, td { border:1px solid #dce5f3; padding:10px 8px; text-align:left; vertical-align:top; font-size:14px; }
+    thead th { background:#f6f9ff; color:#28426e; font-weight:700; white-space:nowrap; }
+    tbody tr:hover { background:#f8fbff; }
+    .mini-input, .mini-select, .mini-textarea {
+      width:100%; border:1px solid #cfd7e6; border-radius:8px; padding:8px 10px; font-size:13px; background:#fff;
+    }
+    .mini-textarea { min-height:60px; resize:vertical; }
+    .mini-btn { padding:6px 12px; border-radius:8px; border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed; cursor:pointer; font-size:12px; font-weight:700; }
+    .empty { color:#667085; background:#fbfcfe; border:1px dashed #dbe5f5; border-radius:12px; padding:18px; text-align:center; }
+    .history-card { background:#fff; border:1px solid #dce5f3; border-radius:12px; padding:14px; margin-bottom:12px; }
+    .history-title { font-weight:700; color:#28426e; margin-bottom:8px; }
+    @media (max-width: 900px) { .grid, .grid-2 { grid-template-columns:1fr; } }
+    .drug-suggest-wrap { position:relative; }
+    .drug-suggest-box { display:none; position:absolute; z-index:200; top:100%; left:0; width:100%; background:#fff; border:1px solid #cfd7e6; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,.12); max-height:220px; overflow-y:auto; }
+    .drug-suggest-item { padding:8px 12px; font-size:13px; cursor:pointer; }
+    .drug-suggest-item:hover { background:#eef4ff; color:#2f6fed; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>藥物記錄單－連動版 v1</h1>
+    <p>依目前專案風格整理成可直接開啟測試版，含個案連動與多筆藥物紀錄。</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#28426e;">居家個案藥物記錄</div>
+          <div class="meta" id="caseMeta">讀取中...</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="goHome()">回首頁</button>
+          <button type="button" class="btn-secondary" onclick="goCasePage()">回個案資料</button>
+          <button type="button" class="btn-secondary" onclick="goDrugMatrixPage()">藥物矩陣</button>
+          <button type="button" class="btn-secondary" onclick="addDrugRow()">新增一列</button>
+          <button type="button" onclick="saveMedicationRecord()">儲存這頁紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">基本資料</h2>
+      <div class="grid">
+        <div>
+          <label for="patientName">姓名</label>
+          <input id="patientName" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="caseNo">病歷號 / 家字號</label>
+          <input id="caseNo" type="text" placeholder="自動帶入或手填">
+        </div>
+        <div>
+          <label for="reviewStaff">藥物檢視及指導人員簽章</label>
+          <select id="reviewStaff">
+            <option value="">請選擇</option>
+            <option>楊宛庭</option>
+            <option>廖容秀</option>
+            <option>沈香杏</option>
+            <option>沙珮宜</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">藥物清單</h2>
+      <div class="subcard" style="margin-bottom:16px;">
+        <div class="hint">依原始藥物記錄單欄位整理：口服藥物名稱 / 劑量 / 頻率、作用、副作用、開立處方醫院/醫師、檢視日期。</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th>藥物名稱 / 劑量 / 頻率</th>
+              <th>作用</th>
+              <th>副作用</th>
+              <th>開立處方醫院 / 醫師</th>
+              <th>檢視日期</th>
+              <th style="width:90px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="drugRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 class="section-title" style="margin:0;">歷史藥物紀錄</h2>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "medicationRecords_v1";
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function getCases() {
+      return JSON.parse(localStorage.getItem("homeCases_v2") || "[]");
+    }
+
+    function getCurrentCase() {
+      const caseId = getQueryParam("caseId");
+      return getCases().find(item => item.id === caseId) || null;
+    }
+
+    function goHome() { window.location.href = "居家照護首頁.html"; }
+    function goCasePage() {
+      const caseId = getQueryParam("caseId");
+      window.location.href = caseId ? ("第一頁個案資料.html?caseId=" + encodeURIComponent(caseId)) : "第一頁個案資料.html";
+    }
+    function goDrugMatrixPage() {
+      const caseId = getQueryParam("caseId");
+      window.location.href = caseId ? ("藥物矩陣Code表單.html?caseId=" + encodeURIComponent(caseId)) : "藥物矩陣Code表單.html";
+    }
+
+    function renderCaseMeta() {
+      const currentUser = JSON.parse(localStorage.getItem("currentHomeUser_v1") || "null");
+      if (currentUser && currentUser.username) {
+        const sel = document.getElementById("reviewStaff");
+        for (let o of sel.options) { if (o.value === currentUser.username) { o.selected = true; break; } }
+      }
+      const item = getCurrentCase();
+      const meta = document.getElementById("caseMeta");
+      if (!item) {
+        meta.textContent = "目前未帶入個案，可先手動輸入姓名與病歷號測試";
+        return;
+      }
+      meta.textContent = "姓名：" + (item.name || "") + "｜病歷號：" + (item.caseNo || "") + "｜主護：" + (item.mainCare || "");
+      document.getElementById("patientName").value = item.name || "";
+      document.getElementById("caseNo").value = item.caseNo || "";
+    }
+
+    function createDrugRow(row = {}) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="row-no"></td>
+        <td class="drug-suggest-wrap"><input class="mini-input" data-field="drugName" value="${row.drugName || ""}" placeholder="輸入藥名搜尋" autocomplete="off" oninput="showDrugSuggestions(this)" onblur="hideDrugSuggestions(this)"><div class="drug-suggest-box"></div></td>
+        <td><textarea class="mini-textarea" data-field="effect" placeholder="例如 甲狀腺素">${row.effect || ""}</textarea></td>
+        <td><textarea class="mini-textarea" data-field="sideEffect" placeholder="例如 心悸，神經質">${row.sideEffect || ""}</textarea></td>
+        <td><input class="mini-input" data-field="prescriber" value="${row.prescriber || ""}" placeholder="例如 光田綜合醫院／王克彬"></td>
+        <td><input class="mini-input" data-field="checkDate" value="${row.checkDate || ""}" placeholder="例如 115/05/01"></td>
+        <td><button type="button" class="mini-btn" onclick="removeDrugRow(this)">刪除</button></td>
+      `;
+      document.getElementById("drugRows").appendChild(tr);
+      syncRowNumbers();
+    }
+
+    function addDrugRow() { createDrugRow(); }
+
+    function removeDrugRow(btn) {
+      const tbody = document.getElementById("drugRows");
+      if (tbody.children.length <= 1) {
+        alert("至少保留一列");
+        return;
+      }
+      btn.closest("tr").remove();
+      syncRowNumbers();
+    }
+
+    function syncRowNumbers() {
+      document.querySelectorAll("#drugRows tr").forEach((tr, idx) => {
+        tr.querySelector(".row-no").textContent = idx + 1;
+      });
+    }
+
+    function getDrugRowsData() {
+      return Array.from(document.querySelectorAll("#drugRows tr")).map(tr => {
+        const row = {};
+        tr.querySelectorAll("[data-field]").forEach(el => row[el.dataset.field] = (el.value || "").trim());
+        return row;
+      }).filter(row => Object.values(row).some(Boolean));
+    }
+
+    function getAllRecords() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    }
+
+    function saveAllRecords(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function saveMedicationRecord() {
+      const caseId = getQueryParam("caseId");
+      const record = {
+        id: Date.now(),
+        caseId: caseId,
+        patientName: document.getElementById("patientName").value.trim(),
+        caseNo: document.getElementById("caseNo").value.trim(),
+        reviewDate: document.getElementById("reviewDate").value.trim(),
+        reviewStaff: document.getElementById("reviewStaff").value.trim(),
+        rows: getDrugRowsData(),
+        createdAt: new Date().toLocaleString("zh-TW")
+      };
+      const list = getAllRecords();
+      list.unshift(record);
+      saveAllRecords(list);
+      renderHistory();
+      alert("已儲存藥物記錄");
+    }
+
+    function renderHistory() {
+      const caseId = getQueryParam("caseId");
+      const list = getAllRecords().filter(item => !caseId || item.caseId === caseId);
+      const box = document.getElementById("historyList");
+      if (!list.length) {
+        box.innerHTML = '<div class="empty">尚未有藥物記錄</div>';
+        return;
+      }
+      box.innerHTML = list.map((item, idx) => `
+        <div class="history-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <div class="history-title">${item.patientName || "未填姓名"}｜${item.reviewDate || "未填檢視日期"}</div>
+              <div class="meta">病歷號：${item.caseNo || "-"}｜指導人員：${item.reviewStaff || "-"}｜建立時間：${item.createdAt || "-"}｜共 ${item.rows?.length || 0} 筆</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="mini-btn" onclick="toggleHistoryDetail(this, ${idx})">展開▼</button>
+              <button type="button" class="mini-btn" style="background:#fef2f2; color:#d64545; border-color:#fca5a5;" onclick="removeHistoryRecord(${item.id})">移除</button>
+            </div>
+          </div>
+          <div class="history-detail" style="display:none; margin-top:12px; overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead><tr style="background:#f6f9ff;">
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">#</th>
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">藥物名稱/劑量/頻率</th>
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">作用</th>
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">副作用</th>
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">開立醫院/醫師</th>
+                <th style="border:1px solid #dce5f3; padding:6px 8px;">檢視日期</th>
+              </tr></thead>
+              <tbody>
+                ${(item.rows || []).map((r, i) => `<tr>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${i+1}</td>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${r.drugName || ""}</td>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${r.effect || ""}</td>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${r.sideEffect || ""}</td>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${r.prescriber || ""}</td>
+                  <td style="border:1px solid #dce5f3; padding:6px 8px;">${r.checkDate || ""}</td>
+                </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function removeHistoryRecord(id) {
+      if (!confirm("確定要移除這筆歷史紀錄？")) return;
+      const list = getAllRecords().filter(item => item.id !== id);
+      saveAllRecords(list);
+      renderHistory();
+    }
+
+    function toggleHistoryDetail(btn, idx) {
+      const detail = btn.closest('.history-card').querySelector('.history-detail');
+      const open = detail.style.display === 'none';
+      detail.style.display = open ? 'block' : 'none';
+      btn.textContent = open ? '收起▲' : '展開▼';
+    }
+
+    createDrugRow({
+      drugName: "Eltroxin 50mcg/tab 2# QDAC",
+      effect: "甲狀腺素",
+      sideEffect: "心悸，神經質",
+      prescriber: "光田醫院／王克彬",
+      checkDate: ""
+    });
+    createDrugRow();
+    createDrugRow();
+
+    function importDrugMatrixSelection() {
+      try {
+        const imported = JSON.parse(localStorage.getItem("selectedDrugMatrixItems_v1") || "[]");
+        if (!Array.isArray(imported) || !imported.length) return;
+        imported.forEach(item => {
+          createDrugRow({
+            drugName: item.drugName || "",
+            effect: item.effect || "",
+            sideEffect: item.sideEffect || "",
+            prescriber: "",
+            checkDate: ""
+          });
+        });
+        localStorage.removeItem("selectedDrugMatrixItems_v1");
+        localStorage.removeItem("selectedDrugMatrixItems_v1_ids");
+        alert("已帶入 " + imported.length + " 筆藥物資料");
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    renderCaseMeta();
+    renderHistory();
+    importDrugMatrixSelection();
+
+    function showDrugSuggestions(input) {
+      const val = input.value.trim().toLowerCase();
+      const box = input.nextElementSibling;
+      if (!val || typeof DRUG_DB === 'undefined') { box.style.display = 'none'; return; }
+      const matches = DRUG_DB.filter(d => d.drugName.toLowerCase().startsWith(val)).slice(0, 12);
+      if (!matches.length) { box.style.display = 'none'; return; }
+      box.innerHTML = '';
+      matches.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'drug-suggest-item';
+        div.textContent = d.drugName;
+        div.onmousedown = () => {
+          const tr = input.closest('tr');
+          input.value = d.drugName;
+          tr.querySelector('[data-field="effect"]').value = d.effect;
+          tr.querySelector('[data-field="sideEffect"]').value = d.sideEffect;
+          box.style.display = 'none';
+        };
+        box.appendChild(div);
+      });
+      box.style.display = 'block';
+    }
+
+    function hideDrugSuggestions(input) {
+      setTimeout(() => { input.nextElementSibling.style.display = 'none'; }, 150);
+    }
+  </script>
+  <script src="med.js"></script>
+</body>
+</html>

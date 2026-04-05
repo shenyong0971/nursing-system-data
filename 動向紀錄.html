@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>動向紀錄－連動版 v1</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    body { margin:0; background:#f4f7fb; color:#243043; }
+    header { background:#2f6fed; color:#fff; padding:18px 24px; }
+    header h1 { margin:0; font-size:26px; }
+    header p { margin:6px 0 0; opacity:.95; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px 40px; }
+    .card { background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:22px; margin-bottom:18px; }
+    .section-title { margin:0 0 16px; font-size:20px; border-left:5px solid #2f6fed; padding-left:10px; }
+    .toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+    .full { grid-column: 1 / -1; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:#28426e; }
+    input, textarea, select {
+      width:100%; border:1px solid #cfd7e6; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
+    }
+    button {
+      border:none; border-radius:10px; padding:10px 16px; cursor:pointer;
+      background:#2f6fed; color:#fff; font-size:14px; font-weight:700;
+    }
+    .btn-secondary {
+      background:#eef4ff; color:#2f6fed; border:1px solid #cfe0ff;
+    }
+    .subcard {
+      background:#fbfcfe; border:1px solid #e3ebfa; border-radius:12px; padding:16px;
+    }
+    .history-card {
+      background:#fff; border:1px solid #dce5f3; border-radius:12px; padding:14px; margin-bottom:12px;
+    }
+    .history-title {
+      font-weight:700; color:#28426e; margin-bottom:10px;
+      display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .meta { color:#667085; font-size:13px; }
+    .empty {
+      color:#667085; background:#fbfcfe; border:1px dashed #dbe5f5; border-radius:12px; padding:18px; text-align:center;
+    }
+    .note { color:#667085; font-size:13px; margin-top:8px; }
+    .tag {
+      display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #cfe0ff;
+      background:#eef4ff; color:#2f6fed; font-size:12px; font-weight:700;
+    }
+    .danger {
+      color:#b42318; background:#fff0ef; border-color:#f2c7c4;
+    }
+    .btn-edit {
+      padding:6px 12px; border-radius:8px; border:1px solid #cfe0ff; background:#eef4ff; color:#2f6fed;
+      cursor:pointer; font-size:12px; font-weight:700;
+    }
+    .btn-delete {
+      padding:6px 12px; border-radius:8px; border:1px solid #f2c7c4; background:#fff0ef; color:#b42318;
+      cursor:pointer; font-size:12px; font-weight:700;
+    }
+    .btn-cancel {
+      padding:10px 16px; border-radius:10px; border:1px solid #cfd7e6; background:#fff; color:#667085;
+      cursor:pointer; font-size:14px; font-weight:700;
+    }
+    @media (max-width: 900px) {
+      .grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>動向紀錄－連動版 v1</h1>
+    <p>住院、出院、喘息與返家紀錄獨立成一頁，之後可再擴充成多筆完整紀錄管理。</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#28426e;">個案動向</div>
+          <div class="meta" id="caseMeta">讀取中...</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="goHome()">回首頁</button>
+          <button type="button" id="btnCancel" class="btn-cancel" onclick="cancelEdit()" style="display:none;">取消編輯</button>
+          <button type="button" id="btnSave" onclick="saveDirectionRecord()">新增這筆紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title" id="formTitle">新增動向紀錄</h2>
+
+      <div class="subcard" style="margin-bottom:16px;">
+        <div class="grid-3">
+          <div>
+            <label for="recordType">紀錄類型</label>
+            <select id="recordType" onchange="toggleRecordType()">
+              <option value="住院">住院</option>
+              <option value="喘息">喘息</option>
+            </select>
+          </div>
+          <div>
+            <label for="recordDate">登記日期</label>
+            <input id="recordDate" type="text" placeholder="例如 115/05/01">
+          </div>
+          <div>
+            <label for="recordNote">備註</label>
+            <input id="recordNote" type="text" placeholder="可先留空">
+          </div>
+        </div>
+      </div>
+
+      <div id="hospitalFields" class="subcard">
+        <div style="font-weight:700; color:#28426e; margin-bottom:10px;">住院 / 出院</div>
+        <div class="grid-3">
+          <div>
+            <label for="hospReason">住院原因</label>
+            <input id="hospReason" type="text" placeholder="請輸入住院原因">
+          </div>
+          <div>
+            <label for="hospDate">住院日期</label>
+            <input id="hospDate" type="text" placeholder="例如 115/05/01">
+          </div>
+          <div>
+            <label for="hospTube">住院管路</label>
+            <input id="hospTube" type="text" placeholder="請輸入住院管路">
+          </div>
+          <div>
+            <label for="dischargeDate">出院日期</label>
+            <input id="dischargeDate" type="text" placeholder="例如 115/05/10">
+          </div>
+          <div>
+            <label for="dischargeTube">出院管路</label>
+            <input id="dischargeTube" type="text" placeholder="請輸入出院管路">
+          </div>
+        </div>
+      </div>
+
+      <div id="respiteFields" class="subcard" style="display:none;">
+        <div style="font-weight:700; color:#28426e; margin-bottom:10px;">喘息 / 返家</div>
+        <div class="grid-3">
+          <div>
+            <label for="respiteOrg">喘息機構</label>
+            <input id="respiteOrg" type="text" placeholder="請輸入機構名稱">
+          </div>
+          <div>
+            <label for="respiteDays">預計日數</label>
+            <input id="respiteDays" type="text" placeholder="例如 7日">
+          </div>
+          <div>
+            <label for="respiteTo">到</label>
+            <input id="respiteTo" type="text" placeholder="例如 115/06/20">
+          </div>
+          <div>
+            <label for="homeDate">返家日期</label>
+            <input id="homeDate" type="text" placeholder="例如 115/06/21">
+          </div>
+          <div>
+            <label for="homeTube">返家管路</label>
+            <input id="homeTube" type="text" placeholder="請輸入返家管路">
+          </div>
+        </div>
+      </div>
+
+      <div class="note" id="formNote">填寫完成後按右上角按鈕儲存。</div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">歷史紀錄</h2>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function getCases() {
+      return JSON.parse(localStorage.getItem("homeCases_v2") || "[]");
+    }
+
+    function saveCases(list) {
+      localStorage.setItem("homeCases_v2", JSON.stringify(list));
+    }
+
+    function goHome() {
+      window.location.href = "居家照護首頁.html";
+    }
+
+    function getCurrentCase() {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      return list.find(item => item.id === caseId) || null;
+    }
+
+    function toggleRecordType() {
+      const type = document.getElementById("recordType").value;
+      document.getElementById("hospitalFields").style.display = type === "住院" ? "block" : "none";
+      document.getElementById("respiteFields").style.display = type === "喘息" ? "block" : "none";
+    }
+
+    function renderCaseMeta() {
+      const item = getCurrentCase();
+      const meta = document.getElementById("caseMeta");
+      if (!item) {
+        meta.textContent = "找不到個案資料";
+        return;
+      }
+      meta.textContent = "姓名：" + (item.name || "") + "｜病歷號：" + (item.caseNo || "") + "｜主護：" + (item.mainCare || "");
+    }
+
+    function renderHistory() {
+      const item = getCurrentCase();
+      const box = document.getElementById("historyList");
+      if (!item) {
+        box.innerHTML = '<div class="empty">找不到個案資料</div>';
+        return;
+      }
+
+      const records = item.directionRecords || [];
+      if (!records.length) {
+        box.innerHTML = '<div class="empty">目前尚無動向紀錄</div>';
+        return;
+      }
+
+      box.innerHTML = "";
+      records.forEach((rec, idx) => {
+        const div = document.createElement("div");
+        div.className = "history-card";
+
+        let content = "";
+        if (rec.type === "住院") {
+          content = `
+            <div class="grid-2">
+              <div><strong>住院原因：</strong>${rec.hospReason || ""}</div>
+              <div><strong>住院日期：</strong>${rec.hospDate || ""}</div>
+              <div><strong>住院管路：</strong>${rec.hospTube || ""}</div>
+              <div><strong>出院日期：</strong>${rec.dischargeDate || ""}</div>
+              <div class="full"><strong>出院管路：</strong>${rec.dischargeTube || ""}</div>
+            </div>
+          `;
+        } else {
+          content = `
+            <div class="grid-2">
+              <div><strong>喘息機構：</strong>${rec.respiteOrg || ""}</div>
+              <div><strong>預計日數：</strong>${rec.respiteDays || ""}</div>
+              <div><strong>到：</strong>${rec.respiteTo || ""}</div>
+              <div><strong>返家日期：</strong>${rec.homeDate || ""}</div>
+              <div class="full"><strong>返家管路：</strong>${rec.homeTube || ""}</div>
+            </div>
+          `;
+        }
+
+        div.innerHTML = `
+          <div class="history-title">
+            <div>
+              <span class="tag ${rec.type === '住院' ? 'danger' : ''}">${rec.type}</span>
+              <span style="margin-left:8px;">紀錄 ${idx + 1}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="meta">登記日期：${rec.recordDate || ""}</span>
+              <button type="button" class="btn-edit" onclick="editRecord(${idx})">編輯</button>
+              <button type="button" class="btn-delete" onclick="deleteRecord(${idx})">刪除</button>
+            </div>
+          </div>
+          ${content}
+          ${rec.recordNote ? `<div class="note">備註：${rec.recordNote}</div>` : ""}
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    var editingIndex = -1; // -1 = 新增模式, >=0 = 編輯模式
+
+    function getFormRecord() {
+      const type = document.getElementById("recordType").value;
+      const record = {
+        type,
+        recordDate: document.getElementById("recordDate").value.trim(),
+        recordNote: document.getElementById("recordNote").value.trim()
+      };
+      if (type === "住院") {
+        record.hospReason = document.getElementById("hospReason").value.trim();
+        record.hospDate = document.getElementById("hospDate").value.trim();
+        record.hospTube = document.getElementById("hospTube").value.trim();
+        record.dischargeDate = document.getElementById("dischargeDate").value.trim();
+        record.dischargeTube = document.getElementById("dischargeTube").value.trim();
+      } else {
+        record.respiteOrg = document.getElementById("respiteOrg").value.trim();
+        record.respiteDays = document.getElementById("respiteDays").value.trim();
+        record.respiteTo = document.getElementById("respiteTo").value.trim();
+        record.homeDate = document.getElementById("homeDate").value.trim();
+        record.homeTube = document.getElementById("homeTube").value.trim();
+      }
+      return record;
+    }
+
+    function updateAdmittedStatus(caseData) {
+      const hasActiveHospital = (caseData.directionRecords || []).some(r => r.type === "住院" && r.hospDate && !r.dischargeDate);
+      caseData.admitted = hasActiveHospital ? "住院中" : "未住院";
+    }
+
+    function saveDirectionRecord() {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      const idx = list.findIndex(item => item.id === caseId);
+
+      if (idx === -1) {
+        alert("找不到個案資料");
+        return;
+      }
+
+      const record = getFormRecord();
+
+      if (!list[idx].directionRecords) {
+        list[idx].directionRecords = [];
+      }
+
+      if (editingIndex >= 0) {
+        list[idx].directionRecords[editingIndex] = record;
+        updateAdmittedStatus(list[idx]);
+        saveCases(list);
+        cancelEdit();
+        renderHistory();
+        alert("動向紀錄已更新");
+      } else {
+        list[idx].directionRecords.push(record);
+        updateAdmittedStatus(list[idx]);
+        saveCases(list);
+        clearForm();
+        renderHistory();
+        alert("動向紀錄已新增");
+      }
+    }
+
+    function editRecord(recIdx) {
+      const item = getCurrentCase();
+      if (!item || !item.directionRecords || !item.directionRecords[recIdx]) return;
+
+      const rec = item.directionRecords[recIdx];
+      editingIndex = recIdx;
+
+      // 填入表單
+      document.getElementById("recordType").value = rec.type;
+      toggleRecordType();
+      document.getElementById("recordDate").value = rec.recordDate || "";
+      document.getElementById("recordNote").value = rec.recordNote || "";
+
+      if (rec.type === "住院") {
+        document.getElementById("hospReason").value = rec.hospReason || "";
+        document.getElementById("hospDate").value = rec.hospDate || "";
+        document.getElementById("hospTube").value = rec.hospTube || "";
+        document.getElementById("dischargeDate").value = rec.dischargeDate || "";
+        document.getElementById("dischargeTube").value = rec.dischargeTube || "";
+      } else {
+        document.getElementById("respiteOrg").value = rec.respiteOrg || "";
+        document.getElementById("respiteDays").value = rec.respiteDays || "";
+        document.getElementById("respiteTo").value = rec.respiteTo || "";
+        document.getElementById("homeDate").value = rec.homeDate || "";
+        document.getElementById("homeTube").value = rec.homeTube || "";
+      }
+
+      // 切換 UI 為編輯模式
+      document.getElementById("formTitle").textContent = "編輯紀錄 " + (recIdx + 1);
+      document.getElementById("btnSave").textContent = "儲存修改";
+      document.getElementById("btnCancel").style.display = "inline-block";
+      document.getElementById("formNote").textContent = "正在編輯第 " + (recIdx + 1) + " 筆紀錄，修改完成後按「儲存修改」。";
+
+      // 捲動到表單
+      document.getElementById("formTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function deleteRecord(recIdx) {
+      const caseId = getQueryParam("caseId");
+      const list = getCases();
+      const idx = list.findIndex(item => item.id === caseId);
+      if (idx === -1) return;
+
+      const rec = list[idx].directionRecords[recIdx];
+      const label = rec.type + "（登記日期：" + (rec.recordDate || "無") + "）";
+      if (!confirm("確定要刪除「" + label + "」這筆紀錄嗎？")) return;
+
+      list[idx].directionRecords.splice(recIdx, 1);
+      updateAdmittedStatus(list[idx]);
+      saveCases(list);
+
+      // 如果正在編輯被刪除的那筆，取消編輯
+      if (editingIndex === recIdx) {
+        cancelEdit();
+      } else if (editingIndex > recIdx) {
+        editingIndex--;
+      }
+
+      renderHistory();
+    }
+
+    function cancelEdit() {
+      editingIndex = -1;
+      clearForm();
+      document.getElementById("formTitle").textContent = "新增動向紀錄";
+      document.getElementById("btnSave").textContent = "新增這筆紀錄";
+      document.getElementById("btnCancel").style.display = "none";
+      document.getElementById("formNote").textContent = "填寫完成後按右上角按鈕儲存。";
+    }
+
+    function clearForm() {
+      document.getElementById("recordDate").value = "";
+      document.getElementById("recordNote").value = "";
+      document.getElementById("hospReason").value = "";
+      document.getElementById("hospDate").value = "";
+      document.getElementById("hospTube").value = "";
+      document.getElementById("dischargeDate").value = "";
+      document.getElementById("dischargeTube").value = "";
+      document.getElementById("respiteOrg").value = "";
+      document.getElementById("respiteDays").value = "";
+      document.getElementById("respiteTo").value = "";
+      document.getElementById("homeDate").value = "";
+      document.getElementById("homeTube").value = "";
+      document.getElementById("recordType").value = "住院";
+      toggleRecordType();
+    }
+
+    renderCaseMeta();
+    renderHistory();
+    toggleRecordType();
+  </script>
+</body>
+</html>
